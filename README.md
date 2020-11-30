@@ -1,2 +1,4 @@
 # DeepCheckers
 Buralar değerlenir
+
+- Rez
