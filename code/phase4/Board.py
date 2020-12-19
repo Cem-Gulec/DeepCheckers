@@ -31,12 +31,19 @@ class Board():
         return 1 if (self.__bitboard & (0x1 << index)) else 0
     
     # girilen labela göre pozisyon indexini döndürür
+    # belki set olayını yaparken işleri kolaylaştırır
     def get_enum_index(self, label):
         return self.positions.index(label)
 
     # Belirlenen square taş koy
     def set_square(self, index):
         self.__bitboard |= (0x1 << index)
+
+    # Belirlenen squaredeki taşı sil
+    def pop_square(self, index):
+        if self.get_square(index):
+            self.__bitboard ^= (0x1 << index)
+        else: 0
     
     def print_bitboard(self):
         
@@ -61,10 +68,7 @@ class Board():
 if __name__ == "__main__":        
     board = Board()
     board.print_bitboard()
-    print("Square 0'in eski degeri : ", board.get_square(0))
-    index_deneme = board.get_enum_index("c4")
-    print(index_deneme)
-    board.set_square(index_deneme)
-    print("Square 0'in yeni degeri : ", board.get_square(0))
-    print("\n\n Yeni square 0 ile board : ")
+    index_deneme = board.get_enum_index("d3")
+    #board.set_square(index_deneme)
+    board.pop_square(index_deneme)
     board.print_bitboard()
