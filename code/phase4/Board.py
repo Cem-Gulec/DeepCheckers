@@ -111,6 +111,28 @@ class Board():
 
         return __attacks
 
+    # Verilen indexte hareket ettirebileceğimiz taş
+    # olduğunu farz ediyorum
+    def forward_move(self, side, index):
+        # Beyaz hamle
+        if (not side):
+            move = index + 8
+            # Eğer önünde taş yoksa ileri hareket edecek
+            if not self.get_square(move):
+                board.set_square(move)
+                board.pop_square(index)
+            else:
+                print("not a valid move")
+
+        # Siyah hamle
+        else:
+            move = index - 8;
+            if not self.get_square(move):
+                board.set_square(move)
+                board.pop_square(index)
+            else:
+                print("not a valid move")
+
     # Asıl bitboard'un nasıl gözüktüğünü print etmek için
     def print_bitboard(self):
         
@@ -159,9 +181,11 @@ class Board():
 if __name__ == "__main__":        
     board = Board()
     board.print_bitboard()
-    index_deneme = board.get_enum_index("d2")
+    index_deneme = board.get_enum_index("h6")
     #board.set_square(index_deneme)
     #board.pop_square(index_deneme)
-
     # Beyaz a5 saldırıyor. Buna göre saldırabileceği pozisyonlar
-    board.print_attack_OnBoard(board.generate_pawn_attack(0, index_deneme))
+    #board.print_attack_OnBoard(board.generate_pawn_attack(0, index_deneme))
+
+    board.forward_move(1, index_deneme)
+    board.print_bitboard()
