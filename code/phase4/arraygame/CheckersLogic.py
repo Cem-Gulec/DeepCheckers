@@ -15,7 +15,7 @@ class Board():
     # -1, 0     ==>  Üst tarafa doğru, yukarıya hamle yönü
     #  0, 1     ==>  Yan tarafa doğru, sağ tarafa hamsle yönü
     #  0, -1    ==>  Yan tarafa doğru, sol tarafa hamle yönü
-    __directions = [(-1,-1),(1,1),(0,1),(1,0)]
+    __directions = [(1,0),(-1,0),(0,1),(0,-1)]
     
     # N burada boardın size'ını belirlemek için, default olarak 8
     def __init__(self, n=8):
