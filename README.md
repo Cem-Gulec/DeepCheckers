@@ -1,4 +1,5 @@
 # DeepCheckers
 Buralar değerlenir
 
-- Rez
+- vay serhat neler dönmüş ya
+
