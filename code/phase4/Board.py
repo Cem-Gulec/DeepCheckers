@@ -60,12 +60,12 @@ class Board():
     __pboard = 0x00ffff0000000000   # Siyah pawn taşları initial state
     __kboard = 0x0000000000000000   # Siyah dama taşları initial state
     
-    __allbitboards = [
-    __Pboard,              # Burası beyaz piyonları temsil etmekte, 
-    __Kboard,              # Burası beyaz dama taşlarını temsil ediyo,  
-    __pboard,              # Burası siyah piyonları temsil etmekte, 
-    __kboard               # Burası siyah dama taşlarını temsil ediyo
-    ]
+    __allbitboards = {
+    "P":__Pboard,              # Burası beyaz piyonları temsil etmekte, index = 0
+    "K":__Kboard,              # Burası beyaz dama taşlarını temsil ediyo, index = 1
+    "p":__pboard,              # Burası siyah piyonları temsil etmekte, index = 2
+    "k":__kboard               # Burası siyah dama taşlarını temsil ediyo, index = 3
+    }
     
     # Boardın tamamındaki toplam taşların gösterilmesi durumu
     
@@ -151,9 +151,8 @@ class Board():
         return self.positions.index(label)
 
     # Belirlenen square taş koy
-    def set_square(self, bitboard, index):
-        bitboard |= (0x1 << index)
-        return bitboard
+    def set_square(self, bitboard_type, index):
+        self.__allbitboards[bitboard_type] |= (0x1 << index)
 
     # Saldırı hamlesi için belirtilen pozisyonları
     # boş tahtada set etmek için
@@ -269,12 +268,8 @@ class Board():
     def print_board(self):
         print("\n")
         
-        self.__Pboard = self.set_square(self.__Pboard, self.get_enum_index("e5"))
-        self.__allbitboards[0] = self.__Pboard
-        self.print_bitboard(self.__Pboard)
-        self.print_bitboard(self.__allbitboards[0])
-        print(self.get_square(self.__allbitboards[0], self.get_enum_index("e5")))#bitboard & (0x1 << index)
-        #TODO: Burada __allbitboards güncellenmiyor, sorunu bulmak lazım
+        self.set_square("p", self.get_enum_index("e5"))
+        self.print_bitboard(self.__allbitboards["P"])
         
         for i in reversed(range(8)):
             for j in range(8):
@@ -286,13 +281,13 @@ class Board():
                 # Square'in locationu, bit olarak hesaplanıyor
                 square = i * 8 + j
                 
-                piece = -1
+                piece = None
                 
-                for k in range(4):
-                    if (self.get_square(self.__allbitboards[k], square)):
-                        piece = k
+                for keys in self.__allbitboards.keys():
+                    if (self.get_square(self.__allbitboards[keys], square)):
+                        piece = keys
                 
-                print(self.ascii_pieces[piece] if piece != -1 else ".", end=" ")
+                print(piece if piece else ".", end=" ")
                 
                 
             print("\n")
