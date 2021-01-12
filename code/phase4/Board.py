@@ -205,14 +205,13 @@ class Board():
         
         return __attacks
 
-    # Bu fonksiyonda elimizde olan taşların attack tablelarına bakarak ve 
-    # orada taşların bulunmasından yola çıkarak burada attack etme hamlesi var diyeceğiz
+    # Bu fonksiyonda elimizde olan pawnlara bakarak attack pozisyonlarını döndürüyor
     def has_an_attack_move(self, bitboard, side, index):
         
         tmp_bitboard = 0x0
         
         #self.print_bitboard(self.__occupancyboards[self.occupancy_list[side]])
-        tmp_bitboard = bitboard & (self.generate_pawn_attack(side, index) & self.__occupancyboards[self.occupancy_list[side]])
+        tmp_bitboard = (self.generate_pawn_attack(side, index) & self.__occupancyboards[self.occupancy_list[side]])
         
         return tmp_bitboard
     # Verilen indexte hareket ettirebileceğimiz taş
@@ -260,11 +259,11 @@ class Board():
     def print_board(self):
         print("\n")
         
+        # HAS_AN_ATTACK fomksiyonu çalışıyor mu diye test amaçlı konulmuş siyah piyonlar
+        self.set_square("p", self.get_enum_index("c4"))
+        self.set_square("p", self.get_enum_index("h4"))
         
-        self.set_square("P", self.get_enum_index("e5"))
-        #self.init_attack_table()
-        
-        tmp = self.has_an_attack_move(self.allbitboards["P"], 1, self.get_enum_index("e5"))
+        tmp = self.has_an_attack_move(self.allbitboards["P"], 0, self.get_enum_index("e5"))
         self.print_bitboard(tmp)
         
         for i in reversed(range(8)):
@@ -294,7 +293,6 @@ class Board():
 
 
 board = Board()
-
 board.print_board()
 #if __name__ == "__main__":        
 #    board = Board()
