@@ -15,7 +15,12 @@ class Board():
     # -1, 0     ==>  Üst tarafa doğru, yukarıya hamle yönü
     #  0, 1     ==>  Yan tarafa doğru, sağ tarafa hamsle yönü
     #  0, -1    ==>  Yan tarafa doğru, sol tarafa hamle yönü
-    __directions = [(1,0),(-1,0),(0,1),(0,-1)]
+    #  1, 1     ==>  Sağ aşağı yönlü, çapraz saldırma hareketi
+    #  1, -1    ==>  Sol aşağı yönlü, çapraz saldırma hareketi
+    # -1, 1     ==>  Sağ yukarı yönlü, çapraz saldırma hareketi
+    # -1, -1    ==>  Sol yukarı yönlü, çapraz saldırma hareketi
+    __directions = [(1,0), (-1,0), (0,1), (0,-1),
+                    (1,1), (1,-1), (-1,1), (-1,-1)]
     
     # N burada boardın size'ını belirlemek için, default olarak 8
     def __init__(self, n=8):
@@ -76,6 +81,37 @@ class Board():
         return False
     
     def get_moves_for_square(self, square):
+        """Returns all the legal moves that ue the given square as a base.
+        """
+        # Square koordinatlarını aldı
+        (x, y) = square
+        
+        # color hangisi
+        color = self[x][y]
+        
+        # Eğer square boşsa return et
+        if color == 0:
+            return None
+        
+        moves = []
+        # Beyaz taşlarda, aşağı yön hareketlerine bakma
+        if color == 1:
+            for direction in self.__directions:
+                if direction[0] != 1:
+                    move = self._discover_move(square, direction)
+                    if move:
+                        moves.append(move)
+                
+        # Siyah taşlarda yukarı yönlü hareketlerine bakma
+        else:
+            for direction in self.__directions:
+                if direction[0] != -1:
+                    move = self._discover_move(square, direction)
+                    if move:
+                        moves.append(move)
+        
+        return moves
+        
     
     def execute_move(self, move, color):
         """Perform the given move on the board; flips pieces as necessary.
@@ -125,9 +161,7 @@ class Board():
             #move = (move[0]+direction[0],move[1]+direction[1])
 
     
-board = Board(8)
-for row in board:
-    print(row)
+
         
         
         

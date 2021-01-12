@@ -25,9 +25,6 @@ class Board():
     
     # Türk daması board initial state
     __bitboard     = 0x00ffff0000ffff00
-
-    # saldırı hamleleri üzerinde denemek için
-    __tmp_bitboard = 0x0000000000000000
     
                         # Tahtanın Represent Edilmesi İçin gerekli Bitboardlar
     
@@ -60,12 +57,7 @@ class Board():
     __pboard = 0x00ffff0000000000   # Siyah pawn taşları initial state
     __kboard = 0x0000000000000000   # Siyah dama taşları initial state
     
-    __allbitboards = {
-    "P":__Pboard,              # Burası beyaz piyonları temsil etmekte, index = 0
-    "K":__Kboard,              # Burası beyaz dama taşlarını temsil ediyo, index = 1
-    "p":__pboard,              # Burası siyah piyonları temsil etmekte, index = 2
-    "k":__kboard               # Burası siyah dama taşlarını temsil ediyo, index = 3
-    }
+    
     
     # Boardın tamamındaki toplam taşların gösterilmesi durumu
     
@@ -87,13 +79,7 @@ class Board():
     
     __whiteocc  = 0x0000000000ffff00    # Beyazın tüm taşları initial statedeyken
     __blackocc  = 0x00ffff0000000000    # Siyahın tüm taşları initial statedeyken
-    __bothocc   = 0x00ffff0000ffff00    # İkisininde tüm taşları initial statedeyken
-    
-    __occupancyboards = [
-    __whiteocc,
-    __blackocc,
-    __bothocc
-    ]
+    __allocc   = 0x00ffff0000ffff00    # İkisininde tüm taşları initial statedeyken
     
     # Oynama sırasının kimde olduğunu tutacak variable
     #
@@ -138,6 +124,20 @@ class Board():
     def __init__(self):
         
         self.ascii_pieces = ["P","K","p","k"]
+        self.occupancy_list = ["W", "B", "A"]
+        
+        self.allbitboards = {
+            "P":self.__Pboard,              # Burası beyaz piyonları temsil etmekte, index = 0
+            "K":self.__Kboard,              # Burası beyaz dama taşlarını temsil ediyo, index = 1
+            "p":self.__pboard,              # Burası siyah piyonları temsil etmekte, index = 2
+            "k":self.__kboard               # Burası siyah dama taşlarını temsil ediyo, index = 3
+        }
+        
+        self.__occupancyboards = {
+            "W":self.__whiteocc,
+            "B":self.__blackocc,
+            "A":self.__allocc
+        }
         
     # Şimdilik o square değeri yerine orda belli bir taş varsa 1 dön, yoksa 0
     # ilerideki aşamalarda bunu taşın değeri olarak döndürülebilir
@@ -152,7 +152,7 @@ class Board():
 
     # Belirlenen square taş koy
     def set_square(self, bitboard_type, index):
-        self.__allbitboards[bitboard_type] |= (0x1 << index)
+        self.allbitboards[bitboard_type] |= (0x1 << index)
 
     # Saldırı hamlesi için belirtilen pozisyonları
     # boş tahtada set etmek için
@@ -168,8 +168,10 @@ class Board():
 
     # Look-up table'i generate ettiğimiz hamlelerle doldurmak için
     def init_attack_table(self):
-        for index in reversed(range(64)):  
+        for index in reversed(range(64)):
+            # Siyah attack table
             self.pawn_attack_table[0][index] = self.generate_pawn_attack(0, index)
+            # Beyaz attack table
             self.pawn_attack_table[1][index] = self.generate_pawn_attack(1, index)
 
     # eğer kuralları ihlal etmediyse (kenarlara denk gelebilir)
@@ -179,34 +181,45 @@ class Board():
         __attacks = 0x0000000000000000
         
         # ilk olarak indexi boarda koy 
-        self.set_square_atk(index)
+        #self.set_square_atk(, index)
 
         # Beyaz hamle
-        if(not side):
+        if side:
             # Sağ sütunu aşıp aşmadığını kontrol et
             # Eğer sorun yoksa sağ tarafa hamle yapabilir
-            if (self.__tmp_bitboard << 7) & self.h_column: 
-                __attacks |= (self.__tmp_bitboard << 7)
+            if (self.allbitboards["P"] << 7) & self.h_column: 
+                __attacks |= (self.allbitboards["P"] << 7)
             # Sol sütunu aşıp aşmadığını kontrol et
             # Eğer sorun yoksa sol tarafa hamle yapabilir
-            if (self.__tmp_bitboard << 9) & self.a_column: 
-                __attacks |= (self.__tmp_bitboard << 9)
+            if (self.allbitboards["P"] << 9) & self.a_column: 
+                __attacks |= (self.allbitboards["P"] << 9)
         
+            self.print_bitboard(__attacks)
         # Siyah hamle
         else:
-            if (self.__tmp_bitboard >> 7) & self.a_column: 
-                __attacks |= (self.__tmp_bitboard >> 7)
-            if (self.__tmp_bitboard >> 9) & self.h_column: 
-                __attacks |= (self.__tmp_bitboard >> 9)
+            if (self.allbitboards["p"] >> 7) & self.a_column: 
+                __attacks |= (self.allbitboards["p"] >> 7)
+            if (self.allbitboards["p"] >> 9) & self.h_column: 
+                __attacks |= (self.allbitboards["p"] >> 9)
 
-
+        
         return __attacks
 
+    # Bu fonksiyonda elimizde olan taşların attack tablelarına bakarak ve 
+    # orada taşların bulunmasından yola çıkarak burada attack etme hamlesi var diyeceğiz
+    def has_an_attack_move(self, bitboard, side, index):
+        
+        tmp_bitboard = 0x0
+        
+        #self.print_bitboard(self.__occupancyboards[self.occupancy_list[side]])
+        tmp_bitboard = bitboard & (self.generate_pawn_attack(side, index) & self.__occupancyboards[self.occupancy_list[side]])
+        
+        return tmp_bitboard
     # Verilen indexte hareket ettirebileceğimiz taş
     # olduğunu farz ediyorum
     def forward_move(self, bitboard, side, index):
         # Beyaz hamle
-        if (not side):
+        if side:
             move = index + 8
             # Eğer önünde taş yoksa ileri hareket edecek
             if not self.get_square(bitboard, move):
@@ -243,33 +256,16 @@ class Board():
     
             print("\n")
         print("   a b c d e f g h\n\n")
-
-    # Asıl board dışında bir hamlenin board yapısında nasıl
-    # gözükeceğini print etmek için
-    def print_attack_OnBoard(self, attack):
-        
-        print("\n")
-        
-        for i in reversed(range(8)):
-            for j in range(8):
-                
-                # SOl taraftaki board indexlerini yaz
-                if not j:
-                    print(i+1, end = "  ")
-                
-                # Square'in locationu, bit olarak hesaplanıyor
-                square = i * 8 + j
-                # Square'de taş varsa 1, yoksa 0 yaz
-                print(1 if (attack & (0x1 << square)) else 0, end = " ")  
-    
-            print("\n")
-        print("   a b c d e f g h\n\n")
     
     def print_board(self):
         print("\n")
         
-        self.set_square("p", self.get_enum_index("e5"))
-        self.print_bitboard(self.__allbitboards["P"])
+        
+        self.set_square("P", self.get_enum_index("e5"))
+        #self.init_attack_table()
+        
+        tmp = self.has_an_attack_move(self.allbitboards["P"], 1, self.get_enum_index("e5"))
+        self.print_bitboard(tmp)
         
         for i in reversed(range(8)):
             for j in range(8):
@@ -283,8 +279,8 @@ class Board():
                 
                 piece = None
                 
-                for keys in self.__allbitboards.keys():
-                    if (self.get_square(self.__allbitboards[keys], square)):
+                for keys in self.allbitboards.keys():
+                    if (self.get_square(self.allbitboards[keys], square)):
                         piece = keys
                 
                 print(piece if piece else ".", end=" ")
@@ -298,8 +294,8 @@ class Board():
 
 
 board = Board()
-board.print_board()
 
+board.print_board()
 #if __name__ == "__main__":        
 #    board = Board()
 #    board.print_bitboard()
