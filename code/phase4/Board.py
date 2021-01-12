@@ -9,7 +9,7 @@
 # Büyük Board   : Bunların hepsini içeren oyunun oynandığı board
 
 # Side == 1     : Sıra Beyazda (Player1),
-# Side == -1    : Sıra Siyahta (Player2);
+# Side == 0    : Sıra Siyahta (Player2);
 
 # Occupancies ile alakalı 3 board olacak:
 # Beyaz occupancy   : Bu bitboardda Beyaz taşların nerede olduğu 
@@ -99,14 +99,6 @@ class Board():
     'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8'
     ]
 
-    # pawn_attack_table[bölge][index]
-    # örnek: pawn_attack_table[beyaz][a5]'da beyaz aşağıda düşünülürse a5'in boardun
-    # yukarı tarafına yapacağı saldırı hamlelerini tutar 
-    # Hem siyah hem beyaz için tüm saldırı hamlelerini içeren look-up table
-    # bölge(0): beyaz, bölge(1): siyah
-    # MxN = 2x64
-    pawn_attack_table = [ [0] * 64 for _ in range(2)]
-
     # Bu sütunları tutmadaki amaç kenar noktalarını belirleyerek
     # kenarı aşarak başka taşı yemesini engellemek
     # örneğin a_column: 
@@ -157,22 +149,14 @@ class Board():
     # Saldırı hamlesi için belirtilen pozisyonları
     # boş tahtada set etmek için
     def set_square_atk(self, bitboard, index):
-        bitboard |= (0x1 << index)
+        bitboard[0] |= (0x1 << index)
 
     # Belirlenen squaredeki taşı sil
     def pop_square(self, bitboard, index):
         # Taşın olup olmadığını konrol et
-        if self.get_square(bitboard, index):
-            bitboard ^= (0x1 << index)
+        if self.get_square(bitboard[0], index):
+            bitboard[0] ^= (0x1 << index)
         else: 0
-
-    # Look-up table'i generate ettiğimiz hamlelerle doldurmak için
-    def init_attack_table(self):
-        for index in reversed(range(64)):
-            # Siyah attack table
-            self.pawn_attack_table[0][index] = self.generate_pawn_attack(0, index)
-            # Beyaz attack table
-            self.pawn_attack_table[1][index] = self.generate_pawn_attack(1, index)
 
     # eğer kuralları ihlal etmediyse (kenarlara denk gelebilir)
     # saldırabileceği 1 veya 2 pozisyonu return eder
@@ -207,35 +191,43 @@ class Board():
 
     # Bu fonksiyonda elimizde olan pawnlara bakarak attack pozisyonlarını döndürüyor
     def has_an_attack_move(self, bitboard, side, index):
-        
-        tmp_bitboard = 0x0
-        
-        #self.print_bitboard(self.__occupancyboards[self.occupancy_list[side]])
-        tmp_bitboard = (self.generate_pawn_attack(side, index) & self.__occupancyboards[self.occupancy_list[side]])
-        
-        return tmp_bitboard
-    # Verilen indexte hareket ettirebileceğimiz taş
-    # olduğunu farz ediyorum
+        return (self.generate_pawn_attack(side, index) & self.__occupancyboards[self.occupancy_list[side]])
+    
+    # TODO: Burada macroların çalışması için listeleme olayına (pointer) girdik, başka yolu var mı araştırılmalı
     def forward_move(self, bitboard, side, index):
-        # Beyaz hamle
-        if side:
-            move = index + 8
-            # Eğer önünde taş yoksa ileri hareket edecek
-            if not self.get_square(bitboard, move):
-                board.set_square(bitboard, move)
-                board.pop_square(bitboard, index)
-            else:
-                print("not a valid move")
+        
+        temp_bitboard = bitboard
+        wrapper = [temp_bitboard]
+        # Indexte hareket ettirebileceğimiz taş var mı
+        if self.get_square(temp_bitboard, index):
+            # Beyaz hamle
+            if side:
+                move = index + 8
+                # Eğer önünde taş yoksa ileri hareket edecek
+                if not self.get_square(temp_bitboard, move):
+                    self.set_square_atk(wrapper, move)
+                    self.pop_square(wrapper, index)
 
-        # Siyah hamle
+            # Siyah hamle
+            else:
+                move = index - 8;
+                if not self.get_square(temp_bitboard, move):
+                    self.set_square_atk(wrapper[0], move)
+                    self.pop_square(wrapper[0], index)
+        
+        # Indexte taş yok
         else:
-            move = index - 8;
-            if not self.get_square(bitboard, move):
-                board.set_square(bitboard, move)
-                board.pop_square(bitboard, index)
-            else:
-                print("not a valid move")
-
+            print("There is no piece in that square")
+            return 0
+        
+        return wrapper[0] 
+        
+    # Bu fonksiyonda ise bütün taşlarına bakarak hangi squarelere hamle yapabilir onu bulacağız
+    def has_an_forward_move(self, bitboard, side):
+        temp_bitboard = 0x0 
+        
+        return temp_bitboard
+    
     # Asıl bitboard'un nasıl gözüktüğünü print etmek için
     def print_bitboard(self, bitboard):
         
@@ -259,12 +251,8 @@ class Board():
     def print_board(self):
         print("\n")
         
-        # HAS_AN_ATTACK fomksiyonu çalışıyor mu diye test amaçlı konulmuş siyah piyonlar
-        self.set_square("p", self.get_enum_index("c4"))
-        self.set_square("p", self.get_enum_index("h4"))
-        
-        tmp = self.has_an_attack_move(self.allbitboards["P"], 0, self.get_enum_index("e5"))
-        self.print_bitboard(tmp)
+        # beyaz d3'deki taşıyla forward yapabiliyor mu kontrol et 
+        self.print_bitboard(self.forward_move(self.allbitboards["P"], 1, self.get_enum_index("d3")))
         
         for i in reversed(range(8)):
             for j in range(8):
@@ -287,21 +275,8 @@ class Board():
                 
             print("\n")
         print("   a b c d e f g h\n\n")
-    
-
        
 
 
 board = Board()
 board.print_board()
-#if __name__ == "__main__":        
-#    board = Board()
-#    board.print_bitboard()
-#    index_deneme = board.get_enum_index("h6")
-    #board.set_square(index_deneme)
-    #board.pop_square(index_deneme)
-    # Beyaz a5 saldırıyor. Buna göre saldırabileceği pozisyonlar
-    #board.print_attack_OnBoard(board.generate_pawn_attack(0, index_deneme))
-
-#    board.forward_move(1, index_deneme)
-#    board.print_bitboard()
