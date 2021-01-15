@@ -11,21 +11,22 @@ class Board():
     
     # Hamlelerimizin yönlerinin tutulduğu yer
     #
-    #  1, 0     ==>  Alt tarafa doğru, aşağıya hamle yönü
-    # -1, 0     ==>  Üst tarafa doğru, yukarıya hamle yönü
+    # -1, 0     ==>  Alt tarafa doğru, aşağıya hamle yönü
+    #  1, 0     ==>  Üst tarafa doğru, yukarıya hamle yönü
     #  0, 1     ==>  Yan tarafa doğru, sağ tarafa hamsle yönü
     #  0, -1    ==>  Yan tarafa doğru, sol tarafa hamle yönü
-    #  1, 1     ==>  Sağ aşağı yönlü, çapraz saldırma hareketi
-    #  1, -1    ==>  Sol aşağı yönlü, çapraz saldırma hareketi
-    # -1, 1     ==>  Sağ yukarı yönlü, çapraz saldırma hareketi
-    # -1, -1    ==>  Sol yukarı yönlü, çapraz saldırma hareketi
-    __directions = [(1,0), (-1,0), (0,1), (0,-1),
-                    (1,1), (1,-1), (-1,1), (-1,-1)]
+    #  -1, 1     ==>  Sağ aşağı yönlü, çapraz saldırma hareketi
+    #  -1, -1    ==>  Sol aşağı yönlü, çapraz saldırma hareketi
+    # 1, 1     ==>  Sağ yukarı yönlü, çapraz saldırma hareketi
+    # 1, -1    ==>  Sol yukarı yönlü, çapraz saldırma hareketi
+    __move_directions = [(-1,0), (1,0), (0,1), (0,-1)]
+    __attack_directions = [(-1,1), (-1,-1), (1,1), (1,-1)]
     
     # N burada boardın size'ını belirlemek için, default olarak 8
     def __init__(self, n=8):
         
         self.n = n
+        self.capture_move = False
         
         # Board kurulumu 
         self.pieces = [None] * self.n
@@ -49,36 +50,31 @@ class Board():
         # Siyah taşlar a6:h6 + a7:h7; Tahtada S ile gösterilen yerler
         
         # Siyah taşlar
-        self.pieces[1] = [-1] * self.n
-        self.pieces[2] = [-1] * self.n
+        self.pieces[6] = [-1] * self.n
+        self.pieces[5] = [-1] * self.n
         
+        self.pieces[4][2] = 1
         # Beyaz taşlar
-        self.pieces[5] = [1] * self.n
-        self.pieces[6] = [1] * self.n
+        self.pieces[2] = [1] * self.n
+        self.pieces[1] = [1] * self.n
     
     def __getitem__(self, index): 
         return self.pieces[index]
     
-    def countDiff(self, color):
-        #  1    == Beyaz
-        #  0    == Boşluk
-        # -1    == Siyah
-        count = 0
+    def get_legal_moves(self, color):
+        # returns all the legal moves
+        moves = set()   # stores the legal moves
+        
         for x in range(self.n):
             for y in range(self.n):
                 if self[x][y] == color:
-                    count += 1
-                if self[x][y] == -color:
-                    count -= 1
+                    newmoves = self.get_moves_for_square((x, y))
+                    if self.capture_move:
+                        moves.clear()
+                        moves.update(newmoves)
+                    moves.update(newmoves)
         
-        return count
-    
-    def get_legal_moves(self, color):
-        # returns all the legal moves
-        
-        return
-    def has_legal_moves(self, color):
-        return False
+        return list(moves)
     
     def get_moves_for_square(self, square):
         """Returns all the legal moves that ue the given square as a base.
@@ -94,74 +90,124 @@ class Board():
             return None
         
         moves = []
-        # Beyaz taşlarda, aşağı yön hareketlerine bakma
+        
+        # ilk başta attack var mı ona bakmalı, varsa onu dön yoksa forward moveları dön
+        if color == 1: # Beyaz taşların sırasıysa        
+            for attk in self.__attack_directions[-2:]:
+                move = self._discover_move(square, attk)
+                if move and (self[move[0]][move[1]] == -1):
+                    moves.append(move)
+        else:  # Siyah taşların sırasıysa
+            for attk in self.__attack_directions[:2]:
+                move = self._discover_move(square, attk)
+                if move and (self[move[0]][move[1]] == 1):
+                    moves.append(move)
+        
+        # Eğer attack hamlesi varsa sadece onlardan yapmalı 
+        if len(moves) > 0:
+            self.capture_move = True
+            return moves
+        
+        
+        self.capture_move = False
+        # Eğer attack hamleleri yoksa, geriye gitme hareketinden başka diğer hamleleri yapabilmeli
         if color == 1:
-            for direction in self.__directions:
-                if direction[0] != 1:
-                    move = self._discover_move(square, direction)
-                    if move:
-                        moves.append(move)
-                
-        # Siyah taşlarda yukarı yönlü hareketlerine bakma
+            for direction in self.__move_directions[1:]:
+                move = self._discover_move(square, direction)
+                if move:
+                    moves.append(move)
         else:
-            for direction in self.__directions:
-                if direction[0] != -1:
-                    move = self._discover_move(square, direction)
-                    if move:
-                        moves.append(move)
+            for direction in self.__move_directions:
+                if direction == (1, 0):    # Siyahta geri hamleyi atla
+                    continue
+                move = self._discover_move(square, direction)
+                if move:
+                    moves.append(move)
         
         return moves
         
     
-    def execute_move(self, move, color):
+    def execute_forward_move(self, square, move, color):
         """Perform the given move on the board; flips pieces as necessary.
         color gives the color pf the piece to play (1=white,-1=black)
         """
-
-        #Much like move generation, start at the new piece's square and
-        #follow it on all 8 directions to look for a piece allowing flipping.
-
-        # Add the piece to the empty square.
-        # print(move)
+        (src_x, src_y) = square
+        (dest_x, dest_y) = move
         
+        assert self[src_x][src_y] == color
+        assert self[dest_x][dest_y] == 0
+        self[src_x][src_y] = 0
+        self[dest_x][dest_y] = color
+        
+    def execute_capture_move(self, square, move, color):
+        
+        (src_x, src_y) = square
+        (dest_x, dest_y) = move
+        
+        assert self[src_x][src_y] == color
+        assert self[dest_x][dest_y] == -color
+        self[src_x][src_y] = 0
+        self[dest_x][dest_y] = color
         
 
     def _discover_move(self, origin, direction):
         """ Returns the endpoint for a legal move, starting at the given origin,
         moving by the given increment."""
-
-    def _get_flips(self, origin, direction, color):
-        """ Gets the list of flips for a vertex and direction to use with the
-        execute_move function """
-        #initialize variables
-        flips = [origin]
-
+        x, y = origin
+        color = self[x][y]
+        
         for x, y in Board._increment_move(origin, direction, self.n):
-            #print(x,y)
-            if self[x][y] == 0:
-                return []
-            if self[x][y] == -color:
-                flips.append((x, y))
-            elif self[x][y] == color and len(flips) > 0:
-                #print(flips)
-                return flips
+            if color == self[x][y]:
+                return None
+            elif self[x][y] == 0:
+                return (x, y)
+            elif self[x][y] == -color:
+                return (x, y)
+            #if self[x][y]:
+            #    print("Burasi neresi {}", self[x][y])
+            #    return None
+            #elif self[x][y] == color:
+            #    return None
 
-        return []
 
     @staticmethod
     def _increment_move(move, direction, n):
         # print(move)
         """ Generator expression for incrementing moves """
         move = list(map(sum, zip(move, direction)))
-        #move = (move[0]+direction[0], move[1]+direction[1])
-        while all(map(lambda x: 0 <= x < n, move)): 
-        #while 0<=move[0] and move[0]<n and 0<=move[1] and move[1]<n:
+        
+        if 0<=move[0] and move[0]<n and 0<=move[1] and move[1]<n:
             yield move
-            move=list(map(sum,zip(move,direction)))
+        #move = (move[0]+direction[0], move[1]+direction[1])
+        #while all(map(lambda x: 0 <= x < n, move)): 
+        #while 0<=move[0] and move[0]<n and 0<=move[1] and move[1]<n:
+        #    print(move)
+        #    yield move
+        #    move=list(map(sum,zip(move,direction)))
             #move = (move[0]+direction[0],move[1]+direction[1])
 
     
-
+    def display(self):
         
+        for x in range(self.n-1, -1, -1):
+            print(x+1, "|",end="")
+            for y in range(self.n):
+                piece = board[x][y]    
+                if piece == -1: print("x ",end="")      # siyah
+                elif piece == 1: print("o ",end="")     # beyaz
+                elif piece == -3: print("X ",end="")    # siyah king
+                elif piece == 3: print("O ",end="")     # beyaz king
+                else:
+                    if x==self.n:
+                        print("-",end="")
+                    else:
+                        print("- ",end="")
+            print("|")
+    
+        print("  ------------------")
         
-        
+board = Board(8)   
+print(board.get_legal_moves(1))    
+board.execute_capture_move((5,1) ,(4, 2), -1)
+board.display()
+print(board.get_legal_moves(-1))         
