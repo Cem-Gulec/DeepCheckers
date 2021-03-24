@@ -21,10 +21,6 @@ class Board():
     # -1, 0     ==>  Üst tarafa doğru, yukarıya hamle yönü
     #  0, 1     ==>  Yan tarafa doğru, sağ tarafa hamle yönü
     #  0, -1    ==>  Yan tarafa doğru, sol tarafa hamle yönü
-    #  1, 1     ==>  Sağ aşağı yönlü, çapraz saldırma hareketi
-    #  1, -1    ==>  Sol aşağı yönlü, çapraz saldırma hareketi
-    # -1, 1     ==>  Sağ yukarı yönlü, çapraz saldırma hareketi
-    # -1, -1    ==>  Sol yukarı yönlü, çapraz saldırma hareketi
     __directions = [(1,0), (-1,0), (0,1), (0,-1)] #,
                     #(1,1), (1,-1), (-1,1), (-1,-1)]
     
@@ -32,6 +28,8 @@ class Board():
     def __init__(self, n=8):
         
         self.n = n
+        self.capture = False
+        self.captureList = set()
         
         # Board kurulumu 
         self.pieces = [None] * self.n
@@ -77,6 +75,11 @@ class Board():
                     newmoves = self.get_moves_for_square((x, y))
                     moves.update(newmoves)
         
+        if len(self.captureList) > 0:
+            moves.clear()
+            moves = self.captureList.copy()
+            return moves
+        
         return moves
     
     def get_moves_for_square(self, square):
@@ -92,20 +95,21 @@ class Board():
         if color == self.EMPTY:
             return None
         
+        # Beyaz taşlarda hamle yönü yukarıya doğru, siyahlarda aşağıya doğru
         move_direction = 1 if color == 1 else -1
         moves = []
-        # Beyaz taşlarda, aşağı yön hareketlerine bakma
+
         if color == self.WHITE_PIECE:
             for direction in self.__directions:
-                if direction[0] != 1:
+                if direction[0] != 1:   # Beyaz taşlar aşağı hareket olmamalı
                     move = self._discover_move(square, direction)
                     if move:
                         moves.append(move)
                 
-        # Siyah taşlarda yukarı yönlü hareketlerine bakma
+        # Siyah taşlar
         else:
             for direction in self.__directions:
-                if direction[0] != -1:
+                if direction[0] != -1:  # Siyah taşlarda yukarı hareket olmamalı
                     move = self._discover_move(square, direction)
                     if move:
                         moves.append(move)
@@ -148,12 +152,32 @@ class Board():
         """Perform the given move on the board; flips pieces as necessary.
         color gives the color pf the piece to play (1=white,-1=black)
         """
-
         #Much like move generation, start at the new piece's square and
         #follow it on all 8 directions to look for a piece allowing flipping.
 
         # Add the piece to the empty square.
-        # print(move)
+        
+        # Saldırıyı yaptıktan sonraki ele geçireceğimiz kare
+        x, y = move[0], move[1]
+        
+        for direction in self.__directions:
+            # Hamleyi yapmayı düşündüğümüz kare
+            x1, y1 = x + direction[0], y + direction[1]
+            if not (x1 < self.n and y1 < self.n ):
+                continue
+            # Yapacağımız hamle capture hareketi değil normal bir move hareketi
+            if self.pieces[x1][y1] * color > 0:
+                self.pieces[x1][y1] = 0
+                self.pieces[x][y] = color
+            # Hamlemiz capture hareketi
+            elif self.pieces[x1][y1] * color < 0:
+                # Capture hareketini yapmayı planladığımız taşın konumu
+                x2, y2 = x1 + direction[0], y1 + direction[1]
+                if self.pieces[x2][y2] * color > 0:
+                    self.pieces[x2][y2] = 0
+                    self.pieces[x1][y1] = 0
+                    self.pieces[x][y] = color
+        
         return
         
         
@@ -161,9 +185,25 @@ class Board():
         """ Returns the endpoint for a legal move, starting at the given origin,
         moving by the given increment."""
         x, y = origin[0] + direction[0], origin[1] + direction[1]
-        if x < self.n and y < self.n and self.pieces[x][y] == 0:
+        
+        if not (x < self.n and y < self.n ):
+            return
+        
+        color = self.pieces[origin[0]][origin[1]]
+        square = self.pieces[x][y]
+        
+        
+        if square == 0:
             return (x, y)
+        elif color * square < 0:
+            x1, y1 = x+direction[0], y+direction[0]
+            
+            if not (x1 < self.n and y1 < self.n ):
+                return
+            
+            if self.pieces[x1][y1] == 0:
+                self.capture = True
+                self.captureList.update([(x,y)])
+                return (x1, y1)
+            
         return
-        
-        
-        

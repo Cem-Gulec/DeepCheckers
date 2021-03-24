@@ -100,3 +100,7 @@ class CheckersGame(Game):
             print("|")
 
         print("-----------------------")
+
+asd = CheckersGame()
+x = Board(8)
+print(asd.getNextState(x, -1, 34))
