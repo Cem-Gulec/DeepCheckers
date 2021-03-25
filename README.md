@@ -5,4 +5,6 @@ Buralar değerlenir
 
 **TODO LIST**
 - [x] ~~asdas~~
-- [ ] **_BugFix_**: Bla bla
+- [ ] 
+- [ ] **_ArrayGame_**: bitboard benzeri "h6" gibi girilen pozisyonun integer index değerini dönecek fonksiyon
+- [ ] **_ArrayGame_**: move ve direction aynı anda decode edecek bir fonksiyon (son 2 bit direction için)
