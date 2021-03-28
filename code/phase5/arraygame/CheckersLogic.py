@@ -56,6 +56,11 @@ class Board():
         self.pieces[1] = [-1] * self.n
         self.pieces[2] = [-1] * self.n
         
+        #self.pieces[4][2] = -1
+        #self.pieces[4][3] = 1
+        #self.pieces[4][4] = -1
+        #self.pieces[3][3] = -1
+        
         # Beyaz taşlar
         self.pieces[5] = [1] * self.n
         self.pieces[6] = [1] * self.n
@@ -101,7 +106,7 @@ class Board():
 
         if color == self.WHITE_PIECE:
             for direction in self.__directions:
-                if direction[0] != 1:   # Beyaz taşlar aşağı hareket olmamalı
+                if direction[0] != move_direction:   # Beyaz taşlar aşağı hareket olmamalı
                     move = self._discover_move(square, direction)
                     if move:
                         moves.append(move)
@@ -109,7 +114,7 @@ class Board():
         # Siyah taşlar
         else:
             for direction in self.__directions:
-                if direction[0] != -1:  # Siyah taşlarda yukarı hareket olmamalı
+                if direction[0] != move_direction:  # Siyah taşlarda yukarı hareket olmamalı
                     move = self._discover_move(square, direction)
                     if move:
                         moves.append(move)
@@ -148,7 +153,7 @@ class Board():
         return 0
     
     
-    def execute_move(self, move, color):
+    def execute_move(self, action, color):
         """Perform the given move on the board; flips pieces as necessary.
         color gives the color pf the piece to play (1=white,-1=black)
         """
@@ -157,29 +162,41 @@ class Board():
 
         # Add the piece to the empty square.
         
-        # Saldırıyı yaptıktan sonraki ele geçireceğimiz kare
-        x, y = move[0], move[1]
+        # action = 8 bit length information == [_ _] [_ _ _ _ _ _] 
+        # ilk 2 bit direction bilgisini tutup bizlere move square'ine hangi yolu kullanarak geldiğimizi bildirecek
+        # son 6 bit move info kullanacak bize hangi square gitmemiz gerekiyor bilgisini verecek
         
-        for direction in self.__directions:
-            # Hamleyi yapmayı düşündüğümüz kare
-            x1, y1 = x + direction[0], y + direction[1]
-            if not (x1 < self.n and y1 < self.n ):
-                continue
-            # Yapacağımız hamle capture hareketi değil normal bir move hareketi
-            if self.pieces[x1][y1] * color > 0:
-                self.pieces[x1][y1] = 0
-                self.pieces[x][y] = color
-            # Hamlemiz capture hareketi
-            elif self.pieces[x1][y1] * color < 0:
-                # Capture hareketini yapmayı planladığımız taşın konumu
-                x2, y2 = x1 + direction[0], y1 + direction[1]
-                if self.pieces[x2][y2] * color > 0:
-                    self.pieces[x2][y2] = 0
-                    self.pieces[x1][y1] = 0
-                    self.pieces[x][y] = color
+        move = action & 63
+        direction = self.get_direction(action >> 6)
+        square = (int(move/self.n), move%self.n)
         
-        return
+        x, y = square[0], square[1]
         
+        if self.capture:
+            captured_piece = [x-direction[0], y-direction[1]]
+            capturing_piece = [x-2*direction[0], y-2*direction[1]]
+             
+            self.pieces[captured_piece[0]][captured_piece[1]] = 0
+            self.pieces[capturing_piece[0]][capturing_piece[1]] = 0
+            self.pieces[x][y] = color
+            self.capture = False
+            self.captureList.clear()
+        else:
+            piece_to_move = [x-direction[0], y-direction[1]]
+            
+            self.pieces[piece_to_move[0]][piece_to_move[1]] = 0
+            self.pieces[x][y] = color
+        
+        
+    def get_direction(self, direction_number):
+        # 4 farklı direction olacak :
+        # 00 : Yukarı   == 0:[-1,0]
+        # 01 : Aşağı    == 1:[1,0]
+        # 10 : Sağa     == 2:[0,1]
+        # 11 : Sola     == 3:[0,-1]
+        
+        direction_dict = {0:[-1,0], 1:[1,0], 2:[0,1], 3:[0,-1]}                 
+        return direction_dict[direction_number]
         
     def _discover_move(self, origin, direction):
         """ Returns the endpoint for a legal move, starting at the given origin,
@@ -196,14 +213,13 @@ class Board():
         if square == 0:
             return (x, y)
         elif color * square < 0:
-            x1, y1 = x+direction[0], y+direction[0]
+            x1, y1 = x+direction[0], y+direction[1]
             
             if not (x1 < self.n and y1 < self.n ):
                 return
             
             if self.pieces[x1][y1] == 0:
                 self.capture = True
-                self.captureList.update([(x,y)])
-                return (x1, y1)
+                self.captureList.update([(x1,y1)])
             
         return

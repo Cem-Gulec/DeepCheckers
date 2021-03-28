@@ -15,13 +15,13 @@ class CheckersGame(Game):
         +3: "W"
     }
     
-    def __init__(self, n=8):
+    def __init__(self, gameboard, n=8):
         self.n = n
+        self.b = gameboard
  
     def getInitBoard(self):
         # return initial board (numpy board)
-        b = Board(self.n)
-        return np.array(b.pieces)
+        return np.array(self.b.pieces)
  
     def getBoardSize(self):
         # (a,b) tuple
@@ -30,18 +30,15 @@ class CheckersGame(Game):
     def getActionSize(self):
         # return number of actions
         # bunu diğerleriyle aynı bıraktım şimdilik, ne dönmesi gerekiyor tam bilmiyorum
-        return self.n * self.n + 1
+        return 256
  
     def getNextState(self, board, player, action):
         # if player takes action on board, return next (board,player)
         # action must be a valid move
         if action == self.n*self.n:
             return (board, -player)
-        b = Board(self.n)
-        b.pieces = np.copy(board.pieces)
-        move = (int(action/self.n), action%self.n)
-        b.execute_move(move, player)
-        return (b.pieces, -player)
+        self.b.execute_move(action, player)
+        return (self.b, -player)
  
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
@@ -101,6 +98,13 @@ class CheckersGame(Game):
 
         print("-----------------------")
 
-asd = CheckersGame()
+
 x = Board(8)
-print(asd.getNextState(x, -1, 34))
+asd = CheckersGame(x)
+asd.display(x)
+print("Legal moves on board : ", x.get_legal_moves(1))
+#x1, t1 = asd.getNextState(x, 1, 225)  # Sola ye
+#x1, t1 = asd.getNextState(x, 1, 165)  # Sağa ye
+x1, t1 = asd.getNextState(x, 1, 34)
+print("\nPrinting next state:\n")
+asd.display(x1)
