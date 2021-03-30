@@ -56,10 +56,10 @@ class Board():
         self.pieces[1] = [-1] * self.n
         self.pieces[2] = [-1] * self.n
         
-        #self.pieces[4][2] = -1
-        #self.pieces[4][3] = 1
-        #self.pieces[4][4] = -1
-        #self.pieces[3][3] = -1
+        """ self.pieces[4][2] = -1
+        self.pieces[4][3] = 1
+        self.pieces[4][4] = -1
+        self.pieces[3][3] = -1 """
         
         # Beyaz taşlar
         self.pieces[5] = [1] * self.n
@@ -136,7 +136,7 @@ class Board():
                 if self[x][y] * enemy > 0:      # Squarede enemy taşı var
                     enemyCount += 1
                 elif self[x][y] * color > 0:    # Squarede bizim taşımız var
-                    numberOfValidMoves += len(self.get_moves_for_square(x, y))  # Squarede legal move var mı
+                    numberOfValidMoves += len(self.get_moves_for_square((x, y)))  # Squarede legal move var mı
                 
                 if enemyCount > 0 and numberOfValidMoves > 0:
                     return 0    # Oyun devam etmeli
@@ -183,9 +183,11 @@ class Board():
             self.captureList.clear()
         else:
             piece_to_move = [x-direction[0], y-direction[1]]
-            
+            print(len(self.pieces))
+            print(len(self.pieces[1]))
             self.pieces[piece_to_move[0]][piece_to_move[1]] = 0
             self.pieces[x][y] = color
+        
         
         
     def get_direction(self, direction_number):
