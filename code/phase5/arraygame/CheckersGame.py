@@ -2,8 +2,9 @@ from __future__ import print_function
 import sys
 sys.path.append('..')
 from Game import Game
-from CheckersLogic import Board
+from .CheckersLogic import Board
 import numpy as np
+import copy
 
 class CheckersGame(Game):
     
@@ -15,13 +16,14 @@ class CheckersGame(Game):
         +3: "W"
     }
     
-    def __init__(self, gameboard, n=8):
+    def __init__(self, n=8):
         self.n = n
-        self.b = gameboard
  
     def getInitBoard(self):
         # return initial board (numpy board)
-        return np.array(self.b.pieces)
+        b = Board(self.n)
+        return b
+        #return np.array(b.pieces)
  
     def getBoardSize(self):
         # (a,b) tuple
@@ -29,7 +31,6 @@ class CheckersGame(Game):
  
     def getActionSize(self):
         # return number of actions
-        # bunu diğerleriyle aynı bıraktım şimdilik, ne dönmesi gerekiyor tam bilmiyorum
         return 256
  
     def getNextState(self, board, player, action):
@@ -37,36 +38,46 @@ class CheckersGame(Game):
         # action must be a valid move
         if action == self.n*self.n:
             return (board, -player)
-        self.b.execute_move(action, player)
-        return (self.b, -player)
+        b = Board(self.n)
+        b = copy.copy(board)
+        b.execute_move(action, player)
+        return (b, -player)
  
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
         valids = [0]*self.getActionSize()
         b = Board(self.n)
-        b.pieces = np.copy(board.pieces)
+        b = copy.copy(board)
         legalMoves =  b.get_legal_moves(player)
         if len(legalMoves)==0:
             valids[-1]=1
             return np.array(valids)
-        for x, y in legalMoves:
-            valids[self.n*x+y]=1
+        """ for x, y in legalMoves:
+            #print("Printing legal moves : ", (x, y))
+            valids[self.n*x+y]=1 """
+        for i in legalMoves:
+            #print("Printing legal moves : ", (x, y))
+            valids[i]=1
         return np.array(valids)
  
     def getGameEnded(self, board, player):
         # return 0 if not ended, 1 if player 1 won, -1 if player 1 lost
         # player = 1
         
-        b = Board(self.n)
-        b.pieces = np.copy(board.pieces)
-        
+        b = Board()
+        b = copy.copy(board)
         result = b.get_game_result(player)        
         
         return result
  
     def getCanonicalForm(self, board, player):
         # return state if player==1, else return -state if player==-1
-        return player * board
+        x = Board()
+        x = copy.copy(board)
+        """ self.display(board) """
+        """ x.pieces = [[j*player for j in i] for i in board] """
+        """ self.display(x) """
+        return x
  
     def getSymmetries(self, board, pi):
         # mirror, rotational
@@ -99,12 +110,11 @@ class CheckersGame(Game):
         print("-----------------------")
 
 
-x = Board(8)
-asd = CheckersGame(x)
+""" x = Board(8)
+asd = CheckersGame()
 asd.display(x)
 print("Legal moves on board : ", x.get_legal_moves(1))
 #x1, t1 = asd.getNextState(x, 1, 225)  # Sola ye
 #x1, t1 = asd.getNextState(x, 1, 165)  # Sağa ye
 x1, t1 = asd.getNextState(x, 1, 34)
-print("\nPrinting next state:\n")
-asd.display(x1)
+ """
