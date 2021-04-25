@@ -55,7 +55,6 @@ class Board():
         # Siyah taşlar
         self.pieces[1] = [-1] * self.n
         self.pieces[2] = [-1] * self.n
-
         # Beyaz taşlar
         self.pieces[5] = [1] * self.n
         self.pieces[6] = [1] * self.n

@@ -41,7 +41,8 @@ class CheckersGame(Game):
         b = Board(self.n)
         b = copy.copy(board)
         b.execute_move(action, player)
-        return (b, -player)
+        self.display(b)
+        return (b.pieces, -player)
  
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
@@ -64,8 +65,9 @@ class CheckersGame(Game):
         # return 0 if not ended, 1 if player 1 won, -1 if player 1 lost
         # player = 1
         
-        b = Board()
+        b = Board(self.n)
         b = copy.copy(board)
+        
         result = b.get_game_result(player)        
         
         return result
