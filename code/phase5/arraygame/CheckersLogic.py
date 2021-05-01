@@ -55,11 +55,19 @@ class Board():
         # Siyah taşlar
         self.pieces[1] = [-1] * self.n
         self.pieces[2] = [-1] * self.n
+
         # Beyaz taşlar
         self.pieces[5] = [1] * self.n
         self.pieces[6] = [1] * self.n
 
-    # add [][] indexer syntax to the Board
+    
+    """ @property
+    def capture(self):
+        return self.capture
+    
+    @capture.setter
+    def capture(self, val):
+        self.capture = val """
 
     def __getitem__(self, index):
         return self.pieces[index]
@@ -180,7 +188,7 @@ class Board():
         # son 6 bit move info kullanacak bize hangi square gitmemiz gerekiyor bilgisini verecek
 
         move = action & 63
-        #direction = self.get_direction(action >> 6)
+        # direction = self.get_direction(action >> 6)
         # 4 farklı direction olacak :
         # 00 : Yukarı   == 0:[-1,0]
         # 01 : Aşağı    == 1:[1,0]
@@ -193,7 +201,7 @@ class Board():
 
         x, y = square[0], square[1]
 
-        if self.capture:    # TODO Needs debug in here
+        if self.capture:
             captured_piece = [x-direction[0], y-direction[1]]
             capturing_piece = [x-2*direction[0], y-2*direction[1]]
 
@@ -213,8 +221,8 @@ class Board():
         # 01 : Aşağı    == 1:[1,0]
         # 10 : Sağa     == 2:[0,1]
         # 11 : Sola     == 3:[0,-1]
-        
-        direction_dict = {0:[-1,0], 1:[1,0], 2:[0,1], 3:[0,-1]}                 
+
+        direction_dict = {0:[-1,0], 1:[1,0], 2:[0,1], 3:[0,-1]}
         return direction_dict[direction_number] """
 
     def _discover_move(self, origin, direction):
@@ -233,9 +241,10 @@ class Board():
         for key, ele in direction_dict.items():
             if ele == direction:
                 direction_way = key
+                break
 
         if square == 0:
-            return int(bin(direction_way) + bin(x*8+y)[2:], 2)  #TODO 5bit kordinat dönüyor, 6 bit olmalı
+            return int(self.get_bin(direction_way, 2) + self.get_bin(x*8+y, 6), 2)
         elif color * square < 0:
             x1, y1 = x+direction[0], y+direction[1]
 
@@ -245,6 +254,23 @@ class Board():
             if self.pieces[x1][y1] == 0:
                 self.capture = True
                 self.captureList.append(
-                    int(bin(direction_way) + bin(x1*8+y1)[2:], 2))  # x1, y1 coordinates
+                    int(self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2))
 
         return
+
+    def get_bin(self, x, n):
+        """
+        Get the binary representation of x with n digits.
+
+        Parameters
+        ----------
+        x : int
+        n : int
+            Minimum number of digits. If x needs less digits in binary, the rest
+            is filled with zeros.
+
+        Returns
+        -------
+        str
+        """
+        return format(x, 'b').zfill(n)
