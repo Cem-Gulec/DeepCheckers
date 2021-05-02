@@ -17,7 +17,7 @@ g = CheckersGame(8)
 
 # all players
 rp = RandomPlayer(g).play
-hp = RandomPlayer2(g).play #HumanCheckersPlayer(g).play
+hp = HumanCheckersPlayer(g).play
 
 
 # nnet players

@@ -95,13 +95,12 @@ class CheckersGame(Game):
     def display(board):
         # display
         n = len(board.pieces)
-        print("   ", end="")
-        for y in range(n):
-            print(y, end=" ")
+        print("\n   ", end="")
+        print("a b c d e f g h", end=" ")
         print("")
         print("-----------------------")
         for y in range(n):
-            print(y, "|", end="")    # print the row #
+            print(y+1, "|", end="")    # print the row #
             for x in range(n):
                 piece = board[y][x]    # get the piece to print
                 print(CheckersGame.square_content[piece], end=" ")
