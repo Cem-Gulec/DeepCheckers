@@ -28,7 +28,7 @@ class Board():
     def __init__(self, n=8):
 
         self.n = n
-        self.capture = False
+        #self.capture = False
         self.captureList = list()
 
         # Board kurulumu
@@ -195,20 +195,23 @@ class Board():
         # 10 : Sağa     == 2:[0,1]
         # 11 : Sola     == 3:[0,-1]
         direction_dict = {0: [-1, 0], 1: [1, 0], 2: [0, 1], 3: [0, -1]}
-        direction = direction_dict[action >> 6]
+        direction = direction_dict[(action >> 6) & 3]
+
+        # capture flag 
+        capture = (action >> 7) & 1        
 
         square = (int(move/self.n), move % self.n)
 
         x, y = square[0], square[1]
 
-        if self.capture:
+        if capture:
             captured_piece = [x-direction[0], y-direction[1]]
             capturing_piece = [x-2*direction[0], y-2*direction[1]]
 
             self.pieces[captured_piece[0]][captured_piece[1]] = 0
             self.pieces[capturing_piece[0]][capturing_piece[1]] = 0
             self.pieces[x][y] = color
-            self.capture = False
+            #self.capture = False
             self.captureList.clear()
         else:
             piece_to_move = [x-direction[0], y-direction[1]]
@@ -224,6 +227,21 @@ class Board():
 
         direction_dict = {0:[-1,0], 1:[1,0], 2:[0,1], 3:[0,-1]}
         return direction_dict[direction_number] """
+
+    """ def tostring(self):     # TODO Adding other pieces too(WHITE.KINGS and BLACK.KINGS), maybe?
+        ret = "b'"
+        for y in range(self.n):
+            for x in range(self.n):
+                piece = self.pieces[y][x]
+                if piece == self.WHITE_PIECE:
+                    ret = ret + str((piece).to_bytes(4, 'little'))[2:-1]              # prints :\x01\x00\x00\x00
+                elif piece == self.BLACK_PIECE:
+                    ret = ret + str((piece).to_bytes(4, 'little', signed=True))[2:-1] # prints :\xff\xff\xff\xff 
+                else:
+                    ret = ret + str((piece).to_bytes(4, 'little'))[2:-1]              # prints :\x00\x00\x00\x00
+        ret = ret + "'"
+        return ret """
+
 
     def _discover_move(self, origin, direction):
         """ Returns the endpoint for a legal move, starting at the given origin,
@@ -244,7 +262,7 @@ class Board():
                 break
 
         if square == 0:
-            return int(self.get_bin(direction_way, 2) + self.get_bin(x*8+y, 6), 2)
+            return int(self.get_bin(0, 2) + self.get_bin(direction_way, 2) + self.get_bin(x*8+y, 6), 2)
         elif color * square < 0:
             x1, y1 = x+direction[0], y+direction[1]
 
@@ -254,7 +272,7 @@ class Board():
             if self.pieces[x1][y1] == 0:
                 self.capture = True
                 self.captureList.append(
-                    int(self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2))
+                    int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2))
 
         return
 
