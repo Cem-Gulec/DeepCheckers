@@ -24,7 +24,6 @@ class CheckersGame(Game):
         # return initial board (numpy board)
         b = Board(self.n)
         return np.array(b.pieces)
-        # return np.array(b.pieces)
 
     def getBoardSize(self):
         # (a,b) tuple
@@ -40,19 +39,16 @@ class CheckersGame(Game):
         if action == self.getActionSize():
             return (board, -player)
         b = Board(self.n)
-        #b.__dict__.update(board.__dict__)
         b.pieces = np.copy(board)
         b.execute_move(action, player)
         return (b.pieces, -player)
 
-    def getValidMoves(self, board, player):
         # return a fixed size binary vector
+    def getValidMoves(self, board, player):
         valids = [0]*self.getActionSize()
         b = Board(self.n)
-        #b.__dict__.update(board.__dict__)
         b.pieces = np.copy(board)
         legalMoves = b.get_legal_moves(player)
-        #setattr(board, 'capture', b.capture)
         if len(legalMoves) == 0:
             valids[-1] = 1
             return np.array(valids)
@@ -73,13 +69,11 @@ class CheckersGame(Game):
     # TODO This method is not called anymore !?
     def getCanonicalForm(self, board, player):
         # return state if player==1, else return -state if player==-1
-        #b = Board()
-        #x = copy.copy(board)
-        #b.__dict__.update(board.__dict__)
-        """ self.display(board) """
-        """ x.pieces = [[j*player for j in i] for i in board] """
-        """ self.display(x) """
-        return board * player
+        if player == 1:
+            return board
+        else:
+            board *= player
+            return np.flip(board, 0)
 
     def getSymmetries(self, board, pi):
         # mirror, rotational

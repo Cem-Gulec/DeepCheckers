@@ -60,14 +60,6 @@ class Board():
         self.pieces[5] = [1] * self.n
         self.pieces[6] = [1] * self.n
 
-    
-    """ @property
-    def capture(self):
-        return self.capture
-    
-    @capture.setter
-    def capture(self, val):
-        self.capture = val """
 
     def __getitem__(self, index):
         return self.pieces[index]
@@ -248,18 +240,16 @@ class Board():
         moving by the given increment."""
         x, y = origin[0] + direction[0], origin[1] + direction[1]
 
-        if not (x < self.n and y < self.n):
+        if not ((0 <= x < self.n) and (0 <= y < self.n)):
             return
 
         color = self.pieces[origin[0]][origin[1]]
         square = self.pieces[x][y]
 
         direction_dict = {0: (-1, 0), 1: (1, 0), 2: (0, 1), 3: (0, -1)}
-        direction_way = 0
         for key, ele in direction_dict.items():
             if ele == direction:
                 direction_way = key
-                break
 
         if square == 0:
             return int(self.get_bin(0, 2) + self.get_bin(direction_way, 2) + self.get_bin(x*8+y, 6), 2)
