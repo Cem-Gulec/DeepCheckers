@@ -69,11 +69,12 @@ class CheckersGame(Game):
     # TODO This method is not called anymore !?
     def getCanonicalForm(self, board, player):
         # return state if player==1, else return -state if player==-1
+        b = np.copy(board)
         if player == 1:
-            return board
+            return b
         else:
-            board *= player
-            return np.flip(board, 0)
+            b *= player
+            return np.flip(b, 0)
 
     def getSymmetries(self, board, pi):
         # mirror, rotational

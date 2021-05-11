@@ -190,7 +190,7 @@ class Board():
         direction = direction_dict[(action >> 6) & 3]
 
         # capture flag 
-        capture = (action >> 7) & 1        
+        capture = (action >> 8) & 1        
 
         square = (int(move/self.n), move % self.n)
 
@@ -256,7 +256,7 @@ class Board():
         elif color * square < 0:
             x1, y1 = x+direction[0], y+direction[1]
 
-            if not (x1 < self.n and y1 < self.n):
+            if not ((0 <= x1 < self.n) and (0 <= y1 < self.n)):
                 return
 
             if self.pieces[x1][y1] == 0:
