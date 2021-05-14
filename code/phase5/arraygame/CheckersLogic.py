@@ -124,6 +124,30 @@ class Board():
         # variables
 
         # SIMPLIFIED CHECKERS ENDING
+
+        # Taşların sayısını kontrol etmek
+        enemy = -color  # Rakip taşların rengi
+        enemyCount = 0  # Rakip taşların sayısı
+        myCount = 0     # Bizim taşların sayısı
+        for x in range(self.n):
+            for y in range(self.n):
+                # Square de rakip taşı var mı
+                if self[x][y] * enemy > 0:
+                    enemyCount += 1
+                # Square de bizim taşımız var mı
+                elif self[x][y] * color > 0:
+                    myCount += 1
+        
+        # Rakip taşı kalmadıysa oyunu biz kazandık
+        if enemyCount == 0:
+            return 1
+        # Bizim taşımız kalmadıysa oyunu rakip kazandı
+        if myCount == 0:
+            return -1
+        
+        # İki oyuncununda kalan taşları var, oyun bitme koşulu araştırılmalı
+        # Beyaz renkler en üst row'a gelince oyunu kazanmalı
+        # Siyah renkler en alt row'a gelince oyunu kazanmalı
         if color == self.WHITE_PIECE:
             if color in self.pieces[0]:     # White wins
                 return 1
@@ -209,31 +233,6 @@ class Board():
             piece_to_move = [x-direction[0], y-direction[1]]
             self.pieces[piece_to_move[0]][piece_to_move[1]] = 0
             self.pieces[x][y] = color
-
-    """ def get_direction(self, direction_number):
-        # 4 farklı direction olacak :
-        # 00 : Yukarı   == 0:[-1,0]
-        # 01 : Aşağı    == 1:[1,0]
-        # 10 : Sağa     == 2:[0,1]
-        # 11 : Sola     == 3:[0,-1]
-
-        direction_dict = {0:[-1,0], 1:[1,0], 2:[0,1], 3:[0,-1]}
-        return direction_dict[direction_number] """
-
-    """ def tostring(self):     # TODO Adding other pieces too(WHITE.KINGS and BLACK.KINGS), maybe?
-        ret = "b'"
-        for y in range(self.n):
-            for x in range(self.n):
-                piece = self.pieces[y][x]
-                if piece == self.WHITE_PIECE:
-                    ret = ret + str((piece).to_bytes(4, 'little'))[2:-1]              # prints :\x01\x00\x00\x00
-                elif piece == self.BLACK_PIECE:
-                    ret = ret + str((piece).to_bytes(4, 'little', signed=True))[2:-1] # prints :\xff\xff\xff\xff 
-                else:
-                    ret = ret + str((piece).to_bytes(4, 'little'))[2:-1]              # prints :\x00\x00\x00\x00
-        ret = ret + "'"
-        return ret """
-
 
     def _discover_move(self, origin, direction):
         """ Returns the endpoint for a legal move, starting at the given origin,

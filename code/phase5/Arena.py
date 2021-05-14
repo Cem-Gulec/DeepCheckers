@@ -27,6 +27,27 @@ class Arena():
         self.game = game
         self.display = display
 
+    def changeValues(self, action, valids):
+        # Bu fonksiyonda player2 için üretilen action ve valids
+        # değerlerinin düzeltilmesi için var
+        
+        # action : int değer
+        # valids : array
+        bin_action = format(action, 'b').zfill(10)
+        bin_flip = ''.join('1' if x=='0' else '0' for x in bin_action[3:])
+        bin_index = bin_action[:3] + bin_flip
+        new_action = int(bin_index, 2)
+
+        non_zero_indexes = [i for i,e in enumerate(valids) if e!=0]
+        for old_index in non_zero_indexes:
+            bin_old_index = format(old_index, 'b').zfill(10)
+            bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[3:])
+            bin_index = bin_old_index[:3] + bin_new_index
+            new_act = int(bin_index, 2)
+            valids[old_index], valids[new_act] = valids[new_act], valids[old_index]
+        
+        return new_action
+
     def playGame(self, verbose=False):
         """
         Executes one episode of a game.
@@ -47,10 +68,13 @@ class Arena():
                 assert self.display
                 print("Turn ", str(it), "Player ", str(curPlayer))
                 self.display(board)
-            
-            action = players[curPlayer + 1](board)#(self.game.getCanonicalForm(board, curPlayer))
+            action = players[curPlayer +
+                             1](self.game.getCanonicalForm(board, curPlayer))
 
-            valids = self.game.getValidMoves(board, curPlayer)#(self.game.getCanonicalForm(board, curPlayer), curPlayer)
+            valids = self.game.getValidMoves(
+                self.game.getCanonicalForm(board, curPlayer), 1)
+            
+            if curPlayer == -1: action = self.changeValues(action, valids)
 
             if valids[action] == 0:
                 log.error(f'Action {action} is not valid!')
@@ -59,7 +83,8 @@ class Arena():
             board, curPlayer = self.game.getNextState(board, curPlayer, action)
         if verbose:
             assert self.display
-            print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
+            print("Game over: Turn ", str(it), "Result ",
+                  str(self.game.getGameEnded(board, 1)))
             self.display(board)
         return curPlayer * self.game.getGameEnded(board, curPlayer)
 
