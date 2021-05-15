@@ -3,8 +3,10 @@ import logging
 import coloredlogs
 
 from Coach import Coach
-from arraygame.CheckersGame import CheckersGame as Game
-from arraygame.Nnet_files.NNet import NNetWrapper as nn
+#from arraygame.CheckersGame import CheckersGame as Game
+#from arraygame.Nnet_files.NNet import NNetWrapper as nn
+from minigame.MiniCheckersGame import CheckersGame as Game
+from minigame.Nnet_files.NNet import NNetWrapper as nn
 from utils import *
 log = logging.getLogger(__name__)
 
@@ -12,11 +14,11 @@ coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
 
 args = dotdict({
     'numIters': 10,
-    'numEps': 50,              # Number of complete self-play games to simulate during a new iteration.
+    'numEps': 10,              # Number of complete self-play games to simulate during a new iteration.
     'tempThreshold': 10,        #
     'updateThreshold': 0.6,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     'maxlenOfQueue': 200000,    # Number of game examples to train the neural networks.
-    'numMCTSSims': 100,          # Number of games moves for MCTS to simulate.
+    'numMCTSSims': 5,          # Number of games moves for MCTS to simulate.
     'arenaCompare': 40,         # Number of games to play during arena play to determine if new net will be accepted.
     'cpuct': 1,
 
@@ -29,7 +31,7 @@ args = dotdict({
 
 def main():
     log.info('Loading %s...', Game.__name__)
-    g = Game(8)
+    g = Game(5,6)
 
     log.info('Loading %s...', nn.__name__)
     nnet = nn(g)
