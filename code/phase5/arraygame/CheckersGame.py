@@ -73,7 +73,9 @@ class CheckersGame(Game):
             return b
         else:
             b *= player
-            return np.rot90(b, k=2)
+            rotate_1 = list(zip(*b[::-1]))
+            rotate_2 = list(zip(*rotate_1[::-1]))
+            return np.asarray(rotate_2)
 
     def getSymmetries(self, board, pi):
         # mirror, rotational
