@@ -12,7 +12,7 @@ from Arena import Arena
 from MCTS import MCTS
 
 log = logging.getLogger(__name__)
-
+sys.setrecursionlimit(100000)
 
 class Coach():
     """
@@ -35,10 +35,8 @@ class Coach():
         non_zero_indexes = [i for i,e in enumerate(pi) if e!=0]
         for old_index in non_zero_indexes:
             bin_old_index = format(old_index, 'b').zfill(9)
-            int_new_act = 29 - int(bin_old_index[4:], 2)
-            bin_new_act = format(int_new_act,'b').zfill(5)
-            bin_new_index = ''.join('1' if bin_old_index[3]=='0' else '0')
-            bin_index = bin_old_index[:3] + bin_new_index + bin_new_act
+            bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[3:])
+            bin_index = bin_old_index[:3] + bin_new_index
             new_action = int(bin_index, 2)
             pi[old_index], pi[new_action] = pi[new_action], pi[old_index]
             
@@ -92,6 +90,7 @@ class Coach():
             r = self.game.getGameEnded(board, self.curPlayer)
 
             if r != 0:
+                self.game.display(board)
                 return [(x[0], x[2], r * ((-1) ** (x[1] != self.curPlayer))) for x in trainExamples]
 
     def learn(self):

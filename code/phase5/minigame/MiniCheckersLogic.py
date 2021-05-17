@@ -25,7 +25,7 @@ class Board():
     # (1,1), (1,-1), (-1,1), (-1,-1)]
 
     # N burada boardın size'ını belirlemek için, default olarak 8
-    def __init__(self, x=5, y=6):
+    def __init__(self, x=8, y=4):
 
         self.x = x
         self.y = y
@@ -52,12 +52,12 @@ class Board():
         # Siyah taşlar a6:h6 + a7:h7; Tahtada S ile gösterilen yerler
 
         # Siyah taşlar
-        self.pieces[0] = [-1] * self.y
         self.pieces[1] = [-1] * self.y
+        self.pieces[2] = [-1] * self.y
 
         # Beyaz taşlar
-        self.pieces[3] = [1] * self.y
-        self.pieces[4] = [1] * self.y
+        self.pieces[5] = [1] * self.y
+        self.pieces[6] = [1] * self.y
 
 
     def __getitem__(self, index):
@@ -150,12 +150,12 @@ class Board():
         if color == self.WHITE_PIECE:
             if color in self.pieces[0]:     # White wins
                 return 1
-            elif -color in self.pieces[4]:  # Black wins
+            elif -color in self.pieces[7]:  # Black wins
                 return -1
             else:
                 return 0        # Game still continues
         else:       # color black
-            if color in self.pieces[4]:     # Black wins
+            if color in self.pieces[7]:     # Black wins
                 return 1
             elif -color in self.pieces[0]:  # White wins
                 return -1

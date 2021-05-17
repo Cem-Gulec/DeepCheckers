@@ -16,7 +16,7 @@ class CheckersGame(Game):
         +3: "W"
     }
 
-    def __init__(self, x=5, y=6):
+    def __init__(self, x=8, y=4):
         self.x = x
         self.y = y
 
