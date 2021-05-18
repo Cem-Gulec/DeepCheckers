@@ -76,6 +76,21 @@ class Arena():
             
             if curPlayer == -1: action = self.changeValues(action, valids)
 
+            """ if curPlayer == 1:
+                if 1 in board[1]:
+                    for i in range(len(valids)):
+                        if i >= 0 and i <= 7: 
+                            valids[i] = 1./8
+                            continue
+                        valids[i] = 0
+            else:
+                if -1 in board[6]:
+                    for i in range(len(valids)):
+                        if i >= 120 and i <= 127: 
+                            valids[i] = 1./8
+                            continue
+                        valids[i] = 0 """
+             
             if valids[action] == 0:
                 log.error(f'Action {action} is not valid!')
                 log.debug(f'valids = {valids}')

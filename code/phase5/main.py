@@ -1,7 +1,7 @@
 import logging
-
 import coloredlogs
-
+import threading
+import sys
 from Coach import Coach
 from arraygame.CheckersGame import CheckersGame as Game
 from arraygame.Nnet_files.NNet import NNetWrapper as nn
@@ -12,12 +12,12 @@ coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
 
 args = dotdict({
     'numIters': 10,
-    'numEps': 50,              # Number of complete self-play games to simulate during a new iteration.
+    'numEps': 100,              # Number of complete self-play games to simulate during a new iteration.
     'tempThreshold': 10,        #
     'updateThreshold': 0.6,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     'maxlenOfQueue': 200000,    # Number of game examples to train the neural networks.
-    'numMCTSSims': 100,          # Number of games moves for MCTS to simulate.
-    'arenaCompare': 40,         # Number of games to play during arena play to determine if new net will be accepted.
+    'numMCTSSims': 15,          # Number of games moves for MCTS to simulate.
+    'arenaCompare': 20,         # Number of games to play during arena play to determine if new net will be accepted.
     'cpuct': 1,
 
     'checkpoint': './temp/',
@@ -52,4 +52,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    threading.stack_size(250000000)
+    sys.setrecursionlimit(100000)
+    thread = threading.Thread(target=main)
+    thread.start()
+    #main()
