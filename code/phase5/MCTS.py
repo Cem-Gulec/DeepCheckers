@@ -5,7 +5,7 @@ import numpy as np
 
 EPS = 1e-8
 
-log = logging.getLogger(__name__)
+logging.basicConfig(filename='example.log', filemode='a',level=logging.DEBUG)
 
 
 class MCTS():
@@ -94,7 +94,7 @@ class MCTS():
 
                 # NB! All valid moves may be masked if either your NNet architecture is insufficient or you've get overfitting or something else.
                 # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.   
-                log.error("All valid moves were masked, doing a workaround.")
+                logging.error("All valid moves were masked, doing a workaround.")
                 self.Ps[s] = self.Ps[s] + valids
                 self.Ps[s] /= np.sum(self.Ps[s])
 
@@ -120,7 +120,17 @@ class MCTS():
                     best_act = a
 
         a = best_act
-        next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
+        try:
+            """ logging.info("Before get next state: ")
+            logging.info(np.array2string(canonicalBoard))
+            logging.info(str(a)) """
+            next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
+            """ logging.info("After get next state: ")
+            logging.info(np.array2string(next_s)) """
+        except: 
+            logging.info("Error has occured: ")
+            logging.info(np.array2string(canonicalBoard))
+
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
         v = self.search(next_s)

@@ -58,6 +58,7 @@ class Coach():
         """
         trainExamples = []
         board = self.game.getInitBoard()
+        """ self.game.display(board) """
         self.curPlayer = 1
         episodeStep = 0
 

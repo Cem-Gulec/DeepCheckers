@@ -38,15 +38,15 @@ class Board():
 
         # Artık elimizde self.pieces 'de 8x8lik boş bir board var
 
-        #               Initial case:
-        #       8 . . . . . . . .
-        #       7 S S S S S S S S
-        #       6 S S S S S S S S
-        #       5 . . . . . . . .
-        #       4 . . . . . . . .
-        #       3 B B B B B B B B
-        #       2 B B B B B B B B
+        #         Initial case:
         #       1 . . . . . . . .
+        #       2 S S S S S S S S
+        #       3 S S S S S S S S
+        #       4 . . . . . . . .
+        #       5 . . . . . . . .
+        #       6 B B B B B B B B
+        #       7 B B B B B B B B
+        #       8 . . . . . . . .
         #         a b c d e f g h
 
         # Beyaz taşlar a2:h2 + a3:h3; Tahtada B ile gösterilen yerler
@@ -59,7 +59,7 @@ class Board():
         # Beyaz taşlar
         self.pieces[5] = [1] * self.n
         self.pieces[6] = [1] * self.n
-
+        
 
     def __getitem__(self, index):
         return self.pieces[index]
@@ -115,34 +115,42 @@ class Board():
                         moves.append(move)
 
         return moves
+    
+    # Boolean function, if player has a piece on board return true, or false
+    def has_piece_on_board(self, color):
+        for x in range(self.n):
+            for y in range(self.n):
+                if self[x][y] * color > 0:
+                    return True
+        
+        return False
+    
+    # Boolean function to check whether given player color has a valid move on board or not
+    def has_a_valid_move(self, color):
+        for x in range(self.n):
+            for y in range(self.n):
+                # ilk if case'i squaredeki taşın bizim taşımız olduğundan emin olurken, 
+                # ikinci if case ise squaredeki taşın valid hamlesinin olup olmadığını kontrol ediyor
+                if (self[x][y] * color > 0) and (len(self.get_moves_for_square((x, y))) > 0):
+                    return True
+        
+        return False
 
     def get_game_result(self, color):
         """ Burada color yendiyse 1, yenildiyse -1, berabere ise 0 döndürcek.
         Bunu yapabilmek için kontrol etmememiz gereken kriterler ise:
         1 - rakibin tüm taşlarının bitmiş olması,
         2 - player'ın yapacak hamlesi kalmaması """
-        # variables
-
-        # SIMPLIFIED CHECKERS ENDING
-
         # Taşların sayısını kontrol etmek
         enemy = -color  # Rakip taşların rengi
         enemyCount = 0  # Rakip taşların sayısı
         myCount = 0     # Bizim taşların sayısı
-        for x in range(self.n):
-            for y in range(self.n):
-                # Square de rakip taşı var mı
-                if self[x][y] * enemy > 0:
-                    enemyCount += 1
-                # Square de bizim taşımız var mı
-                elif self[x][y] * color > 0:
-                    myCount += 1
         
         # Rakip taşı kalmadıysa oyunu biz kazandık
-        if enemyCount == 0:
+        if not self.has_piece_on_board(enemy):
             return 1
-        # Bizim taşımız kalmadıysa oyunu rakip kazandı
-        if myCount == 0:
+        # Bizim oynatacak taşımız kalmadıysa oyunu rakip kazandı
+        if not self.has_a_valid_move(color):
             return -1
         
         # İki oyuncununda kalan taşları var, oyun bitme koşulu araştırılmalı
@@ -162,33 +170,6 @@ class Board():
                 return -1
             else:
                 return 0        # Game still continues
-
-        # COMPLEX CHECKERS ENDING -- Currently code does not executes this part
-        enemy = -color
-        enemyCount = 0
-        numberOfValidMoves = 0
-
-        for x in range(self.n):
-            for y in range(self.n):
-                if self[x][y] * enemy > 0:      # Squarede enemy taşı var
-                    enemyCount += 1
-                elif self[x][y] * color > 0:    # Squarede bizim taşımız var
-                    # Squarede legal move var mı
-                    numberOfValidMoves += len(self.get_moves_for_square((x, y)))
-
-                if enemyCount > 0 and numberOfValidMoves > 0:
-                    return 0    # Oyun devam etmeli
-
-        # Bütün squareleri kontrol ettik ve hala enemy piece bulamadıysak, oyunu kazanmışızdır
-        if enemyCount == 0:
-            return 1
-
-        # Hala enemy piece varsa ve bizim valid hamlemiz kalmadıysa, rakip oyunu kazanmıştır
-        if numberOfValidMoves == 0:
-            return -1
-
-        # Oyun hala devam etmekte
-        return 0
 
     def execute_move(self, action, color):
         """Perform the given move on the board; flips pieces as necessary.
