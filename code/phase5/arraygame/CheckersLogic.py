@@ -15,14 +15,13 @@ class Board():
     WHITE_KINGS = 3
     BLACK_KINGS = -3
 
-    # Hamlelerimizin yönlerinin tutulduğu yer
+     # Hamlelerimizin yönlerinin tutulduğu yer
     #
-    #  1, 0     ==>  Alt tarafa doğru, aşağıya hamle yönü
-    # -1, 0     ==>  Üst tarafa doğru, yukarıya hamle yönü
-    #  0, 1     ==>  Yan tarafa doğru, sağ tarafa hamle yönü
-    #  0, -1    ==>  Yan tarafa doğru, sol tarafa hamle yönü
-    __directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]  # ,
-    # (1,1), (1,-1), (-1,1), (-1,-1)]
+    #  1, 1     ==>  Sağ aşağı tarafa hamle yönü
+    #  1,-1     ==>  Sol aşağı tarafa hamle yönü
+    # -1, 1     ==>  Sağ yukarı tarafa hamle yönü
+    # -1,-1     ==>  Sol yukarı tarafa hamle yönü
+    __directions = [(1,1), (1,-1), (-1,1), (-1,-1)]
 
     # N burada boardın size'ını belirlemek için, default olarak 8
     def __init__(self, n=8):
@@ -39,26 +38,26 @@ class Board():
         # Artık elimizde self.pieces 'de 8x8lik boş bir board var
 
         #               Initial case:
-        #       8 . . . . . . . .
-        #       7 S S S S S S S S
-        #       6 S S S S S S S S
+        #       8 . b . b . b . b
+        #       7 b . b . b . b .
+        #       6 . b . b . b . b
         #       5 . . . . . . . .
         #       4 . . . . . . . .
-        #       3 B B B B B B B B
-        #       2 B B B B B B B B
-        #       1 . . . . . . . .
+        #       3 w . w . w . w .
+        #       2 . w . w . w . w
+        #       1 w . w . w . w .
         #         a b c d e f g h
 
-        # Beyaz taşlar a2:h2 + a3:h3; Tahtada B ile gösterilen yerler
-        # Siyah taşlar a6:h6 + a7:h7; Tahtada S ile gösterilen yerler
-
+        
         # Siyah taşlar
-        self.pieces[1] = [-1] * self.n
-        self.pieces[2] = [-1] * self.n
-
+        self.pieces[0][1], self.pieces[0][3], self.pieces[0][5], self.pieces[0][7] = -1, -1, -1, -1
+        self.pieces[1][0], self.pieces[1][2], self.pieces[1][4], self.pieces[1][6] = -1, -1, -1, -1
+        self.pieces[2][1], self.pieces[2][3], self.pieces[2][5], self.pieces[2][7] = -1, -1, -1, -1
+        
         # Beyaz taşlar
-        self.pieces[5] = [1] * self.n
-        self.pieces[6] = [1] * self.n
+        self.pieces[5][0], self.pieces[5][2], self.pieces[5][4], self.pieces[5][6] = 1, 1, 1, 1
+        self.pieces[6][1], self.pieces[6][3], self.pieces[6][5], self.pieces[6][7] = 1, 1, 1, 1
+        self.pieces[7][0], self.pieces[7][2], self.pieces[7][4], self.pieces[7][6] = 1, 1, 1, 1
 
 
     def __getitem__(self, index):
@@ -115,7 +114,27 @@ class Board():
                         moves.append(move)
 
         return moves
-
+    
+    # Boolean function, if player has a piece on board return true, or false
+    def has_piece_on_board(self, color):
+        for x in range(self.n):
+            for y in range(self.n):
+                if self[x][y] * color > 0:
+                    return True
+        
+        return False
+    
+    # Boolean function to check whether given player color has a valid move on board or not
+    def has_a_valid_move(self, color):
+        for x in range(self.n):
+            for y in range(self.n):
+                # ilk if case'i squaredeki taşın bizim taşımız olduğundan emin olurken, 
+                # ikinci if case ise squaredeki taşın valid hamlesinin olup olmadığını kontrol ediyor
+                if (self[x][y] * color > 0) and (len(self.get_moves_for_square((x, y))) > 0):
+                    return True
+        
+        return False
+    
     def get_game_result(self, color):
         """ Burada color yendiyse 1, yenildiyse -1, berabere ise 0 döndürcek.
         Bunu yapabilmek için kontrol etmememiz gereken kriterler ise:
@@ -127,22 +146,12 @@ class Board():
 
         # Taşların sayısını kontrol etmek
         enemy = -color  # Rakip taşların rengi
-        enemyCount = 0  # Rakip taşların sayısı
-        myCount = 0     # Bizim taşların sayısı
-        for x in range(self.n):
-            for y in range(self.n):
-                # Square de rakip taşı var mı
-                if self[x][y] * enemy > 0:
-                    enemyCount += 1
-                # Square de bizim taşımız var mı
-                elif self[x][y] * color > 0:
-                    myCount += 1
-        
+
         # Rakip taşı kalmadıysa oyunu biz kazandık
-        if enemyCount == 0:
+        if not self.has_piece_on_board(enemy):
             return 1
-        # Bizim taşımız kalmadıysa oyunu rakip kazandı
-        if myCount == 0:
+        # Bizim oynatacak taşımız kalmadıysa oyunu rakip kazandı
+        if not self.has_a_valid_move(color):
             return -1
         
         # İki oyuncununda kalan taşları var, oyun bitme koşulu araştırılmalı
@@ -162,33 +171,6 @@ class Board():
                 return -1
             else:
                 return 0        # Game still continues
-
-        # COMPLEX CHECKERS ENDING -- Currently code does not executes this part
-        enemy = -color
-        enemyCount = 0
-        numberOfValidMoves = 0
-
-        for x in range(self.n):
-            for y in range(self.n):
-                if self[x][y] * enemy > 0:      # Squarede enemy taşı var
-                    enemyCount += 1
-                elif self[x][y] * color > 0:    # Squarede bizim taşımız var
-                    # Squarede legal move var mı
-                    numberOfValidMoves += len(self.get_moves_for_square((x, y)))
-
-                if enemyCount > 0 and numberOfValidMoves > 0:
-                    return 0    # Oyun devam etmeli
-
-        # Bütün squareleri kontrol ettik ve hala enemy piece bulamadıysak, oyunu kazanmışızdır
-        if enemyCount == 0:
-            return 1
-
-        # Hala enemy piece varsa ve bizim valid hamlemiz kalmadıysa, rakip oyunu kazanmıştır
-        if numberOfValidMoves == 0:
-            return -1
-
-        # Oyun hala devam etmekte
-        return 0
 
     def execute_move(self, action, color):
         """Perform the given move on the board; flips pieces as necessary.
@@ -210,7 +192,7 @@ class Board():
         # 01 : Aşağı    == 1:[1,0]
         # 10 : Sağa     == 2:[0,1]
         # 11 : Sola     == 3:[0,-1]
-        direction_dict = {0: [-1, 0], 1: [1, 0], 2: [0, 1], 3: [0, -1]}
+        direction_dict = {0: [-1, -1], 1: [-1, 1], 2: [1, -1], 3: [1, 1]}
         direction = direction_dict[(action >> 6) & 3]
 
         # capture flag 
@@ -221,16 +203,15 @@ class Board():
         x, y = square[0], square[1]
 
         if capture:
-            captured_piece = [x-direction[0], y-direction[1]]
-            capturing_piece = [x-2*direction[0], y-2*direction[1]]
+            captured_piece = [x+direction[0], y+direction[1]]
+            capturing_piece = [x+2*direction[0], y+2*direction[1]]
 
             self.pieces[captured_piece[0]][captured_piece[1]] = 0
             self.pieces[capturing_piece[0]][capturing_piece[1]] = 0
             self.pieces[x][y] = color
-            #self.capture = False
             self.captureList.clear()
         else:
-            piece_to_move = [x-direction[0], y-direction[1]]
+            piece_to_move = [x+direction[0], y+direction[1]]
             self.pieces[piece_to_move[0]][piece_to_move[1]] = 0
             self.pieces[x][y] = color
 
@@ -245,7 +226,7 @@ class Board():
         color = self.pieces[origin[0]][origin[1]]
         square = self.pieces[x][y]
 
-        direction_dict = {0: (-1, 0), 1: (1, 0), 2: (0, 1), 3: (0, -1)}
+        direction_dict = {0: (1, 1), 1: (1, -1), 2: (-1, 1), 3: (-1, -1)}
         for key, ele in direction_dict.items():
             if ele == direction:
                 direction_way = key
@@ -262,6 +243,7 @@ class Board():
                 self.capture = True
                 self.captureList.append(
                     int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2))
+                return int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2)
 
         return
 

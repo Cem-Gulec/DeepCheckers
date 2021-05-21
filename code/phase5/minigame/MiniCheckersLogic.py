@@ -150,9 +150,7 @@ class Board():
 
         # Taşların sayısını kontrol etmek
         enemy = -color  # Rakip taşların rengi
-        enemyCount = 0  # Rakip taşların sayısı
-        myCount = 0     # Bizim taşların sayısı
-        
+
         # Rakip taşı kalmadıysa oyunu biz kazandık
         if not self.has_piece_on_board(enemy):
             return 1
@@ -246,10 +244,10 @@ class Board():
                 return
 
             if self.pieces[x1][y1] == 0:
-                self.capture = True
                 self.captureList.append(
                     int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*self.y+y1, 5), 2))
-
+                return int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*self.y+y1, 5), 2)
+        
         return
 
     def get_bin(self, x, n):

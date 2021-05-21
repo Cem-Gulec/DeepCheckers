@@ -3,10 +3,11 @@ import logging
 import coloredlogs
 
 from Coach import Coach
-#from arraygame.CheckersGame import CheckersGame as Game
-#from arraygame.Nnet_files.NNet import NNetWrapper as nn
-from minigame.MiniCheckersGame import CheckersGame as Game
-from minigame.Nnet_files.NNet import NNetWrapper as nn
+from arraygame.CheckersGame import CheckersGame as Game
+from arraygame.Nnet_files.NNet import NNetWrapper as nn
+# Uncomment this if U want to play mini checkers with 8x4 board
+""" from minigame.MiniCheckersGame import CheckersGame as Game
+from minigame.Nnet_files.NNet import NNetWrapper as nn """
 from utils import *
 log = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ args = dotdict({
 
 def main():
     log.info('Loading %s...', Game.__name__)
-    g = Game(8,4)
+    # Change this to Game(8,4) if U want to play mini checkers 
+    g = Game(8)
 
     log.info('Loading %s...', nn.__name__)
     nnet = nn(g)

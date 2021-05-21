@@ -27,36 +27,21 @@ class Arena():
         self.game = game
         self.display = display
 
-    def changeValues(self, action, valids):
+    def changeValues(self, action, valids, mini):
         # Bu fonksiyonda player2 için üretilen action ve valids
         # değerlerinin düzeltilmesi için var
         
         # action : int değer
         # valids : array
         bin_action = format(action, 'b').zfill(10)
-        bin_flip = ''.join('1' if x=='0' else '0' for x in bin_action[3:])
-        bin_index = bin_action[:3] + bin_flip
-        new_action = int(bin_index, 2)
-
-        non_zero_indexes = [i for i,e in enumerate(valids) if e!=0]
-        for old_index in non_zero_indexes:
-            bin_old_index = format(old_index, 'b').zfill(10)
-            bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[3:])
-            bin_index = bin_old_index[:3] + bin_new_index
-            new_act = int(bin_index, 2)
-            valids[old_index], valids[new_act] = valids[new_act], valids[old_index]
-        
-        return new_action
-    
-    def changeValuesMini(self, action, valids):
-        bin_action = format(action, 'b').zfill(9)
         bin_flip = ''.join('1' if x=='0' else '0' for x in bin_action[2:])
         bin_index = bin_action[:2] + bin_flip
         new_action = int(bin_index, 2)
 
+        num_zeros = 9 if mini else 10
         non_zero_indexes = [i for i,e in enumerate(valids) if e!=0]
         for old_index in non_zero_indexes:
-            bin_old_index = format(old_index, 'b').zfill(9)
+            bin_old_index = format(old_index, 'b').zfill(num_zeros)
             bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[2:])
             bin_index = bin_old_index[:2] + bin_new_index
             new_act = int(bin_index, 2)
@@ -90,8 +75,8 @@ class Arena():
             valids = self.game.getValidMoves(
                 self.game.getCanonicalForm(board, curPlayer), 1)
             
-            if curPlayer == -1: action = self.changeValuesMini(action, valids)
-            #self.changeValues(action, valids)
+            # Change mini to True if U want to play mini checkers with 8x4 board
+            if curPlayer == -1: action = self.changeValues(action, valids, mini=False)
 
             if valids[action] == 0:
                 log.error(f'Action {action} is not valid!')

@@ -49,9 +49,9 @@ class CheckersGame(Game):
         b = Board(self.n)
         b.pieces = np.copy(board)
         legalMoves = b.get_legal_moves(player)
-        if len(legalMoves) == 0:
+        """ if len(legalMoves) == 0:
             valids[-1] = 1
-            return np.array(valids)
+            return np.array(valids) """
         for i in legalMoves:
             valids[i] = 1
         return np.array(valids)
