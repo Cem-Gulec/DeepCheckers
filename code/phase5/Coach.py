@@ -35,8 +35,8 @@ class Coach():
         non_zero_indexes = [i for i,e in enumerate(pi) if e!=0]
         for old_index in non_zero_indexes:
             bin_old_index = format(old_index, 'b').zfill(9)
-            bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[3:])
-            bin_index = bin_old_index[:3] + bin_new_index
+            bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[2:])
+            bin_index = bin_old_index[:2] + bin_new_index
             new_action = int(bin_index, 2)
             pi[old_index], pi[new_action] = pi[new_action], pi[old_index]
             
@@ -77,7 +77,7 @@ class Coach():
             canonicalBoard = self.game.getCanonicalForm(board, self.curPlayer)
             temp = int(episodeStep < self.args.tempThreshold)
 
-            pi = self.mcts.getActionProb(canonicalBoard, temp=temp)
+            pi = self.mcts.getActionProb(canonicalBoard, temp=1)    #temp=temp
             if self.curPlayer == -1: self.get_new_pi_mini(pi)
             sym = self.game.getSymmetries(canonicalBoard, pi)
             for b, p in sym:
