@@ -50,15 +50,15 @@ class Arena():
     
     def changeValuesMini(self, action, valids):
         bin_action = format(action, 'b').zfill(9)
-        bin_flip = ''.join('1' if x=='0' else '0' for x in bin_action[3:])
-        bin_index = bin_action[:3] + bin_flip
+        bin_flip = ''.join('1' if x=='0' else '0' for x in bin_action[2:])
+        bin_index = bin_action[:2] + bin_flip
         new_action = int(bin_index, 2)
 
         non_zero_indexes = [i for i,e in enumerate(valids) if e!=0]
         for old_index in non_zero_indexes:
             bin_old_index = format(old_index, 'b').zfill(9)
-            bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[3:])
-            bin_index = bin_old_index[:3] + bin_new_index
+            bin_new_index = ''.join('1' if x=='0' else '0' for x in bin_old_index[2:])
+            bin_index = bin_old_index[:2] + bin_new_index
             new_act = int(bin_index, 2)
             valids[old_index], valids[new_act] = valids[new_act], valids[old_index]
         
