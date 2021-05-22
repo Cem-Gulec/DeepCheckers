@@ -40,8 +40,8 @@ class NNetWrapper(NeuralNet):
 
         for epoch in range(args.epochs):
             print('EPOCH ::: ' + str(epoch + 1))
-            pi_losses = AverageMeter()
-            v_losses = AverageMeter()
+            pi_losses_val = AverageMeter()
+            v_losses_val = AverageMeter()
             batch_count = int(len(examples) / args.batch_size)
 
             # self.sess.run(tf.local_variables_initializer())
@@ -57,8 +57,8 @@ class NNetWrapper(NeuralNet):
                 # record loss
                 self.sess.run(self.nnet.train_step, feed_dict=input_dict)
                 pi_loss, v_loss = self.sess.run([self.nnet.loss_pi, self.nnet.loss_v], feed_dict=input_dict)
-                pi_losses.update(pi_loss, len(boards))
-                v_losses.update(v_loss, len(boards))
+                pi_losses_val.update(pi_loss, len(boards))
+                v_losses_val.update(v_loss, len(boards))
                 t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
 
     def predict(self, board):
