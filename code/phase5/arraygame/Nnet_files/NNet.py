@@ -26,6 +26,8 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
+        self.pi_losses_val = None
+        self.v_losses_val = None
 
         self.sess = tf.Session(graph=self.nnet.graph)
         self.saver = None
@@ -40,8 +42,8 @@ class NNetWrapper(NeuralNet):
 
         for epoch in range(args.epochs):
             print('EPOCH ::: ' + str(epoch + 1))
-            pi_losses_val = AverageMeter()
-            v_losses_val = AverageMeter()
+            pi_losses = AverageMeter()
+            v_losses = AverageMeter()
             batch_count = int(len(examples) / args.batch_size)
 
             # self.sess.run(tf.local_variables_initializer())
@@ -57,9 +59,12 @@ class NNetWrapper(NeuralNet):
                 # record loss
                 self.sess.run(self.nnet.train_step, feed_dict=input_dict)
                 pi_loss, v_loss = self.sess.run([self.nnet.loss_pi, self.nnet.loss_v], feed_dict=input_dict)
-                pi_losses_val.update(pi_loss, len(boards))
-                v_losses_val.update(v_loss, len(boards))
-                t.set_postfix(Loss_pi=pi_losses_val, Loss_v=v_losses_val)
+                self.pi_losses.update(pi_loss, len(boards))
+                self.v_losses.update(v_loss, len(boards))
+                t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
+        
+        self.pi_losses_val = pi_losses.avg
+        self.v_losses_val = v_losses.avg  
 
     def predict(self, board):
         """
