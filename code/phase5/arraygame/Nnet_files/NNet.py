@@ -12,10 +12,8 @@ from NeuralNet import NeuralNet
 import torch
 import torch.optim as optim
 
-import tensorflow as tf
 
-from .TurkishCheckersNNet import ResNet as onnet
-#from .TurkishCheckersNNet import TurkishCheckersNNet as onnet
+from .TurkishCheckersNNet import TurkishCheckersNNet as onnet
 
 args = dotdict({
     'lr': 0.001,
