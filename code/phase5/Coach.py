@@ -94,9 +94,6 @@ class Coach():
         It then pits the new neural network against the old one and accepts it
         only if it wins >= updateThreshold fraction of games.
         """
-
-        loss_pi_list = []
-        loss_v_list = []
         
         for i in range(1, self.args.numIters + 1):
             # bookkeeping
@@ -134,9 +131,6 @@ class Coach():
             self.nnet.train(trainExamples)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
-            loss_pi_list.append(self.nnet.pi_losses_val)
-            loss_v_list.append(self.nnet.v_losses_val)
-
             log.info('PITTING AGAINST PREVIOUS VERSION')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                           lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
@@ -150,12 +144,6 @@ class Coach():
                 log.info('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
-        
-        x = [0, 10]
-        fig, ax = plt.subplots()
-        ax.plot(x, loss_pi_list)
-        fig.savefig("test.png")
-        plt.show()
 
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'

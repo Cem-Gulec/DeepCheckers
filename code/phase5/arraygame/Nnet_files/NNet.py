@@ -59,7 +59,7 @@ class NNetWrapper(NeuralNet):
                 pi_loss, v_loss = self.sess.run([self.nnet.loss_pi, self.nnet.loss_v], feed_dict=input_dict)
                 pi_losses_val.update(pi_loss, len(boards))
                 v_losses_val.update(v_loss, len(boards))
-                t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
+                t.set_postfix(Loss_pi=pi_losses_val, Loss_v=v_losses_val)
 
     def predict(self, board):
         """
