@@ -7,6 +7,9 @@
 # 0     : Boş alan
 # -1    : Normal Siyah renkli taş
 # -3    : Dama olmuş Siyah renkli taş
+from numpy.lib.utils import safe_eval
+
+
 class Board():
 
     EMPTY = 0
@@ -27,8 +30,8 @@ class Board():
     def __init__(self, n=8):
 
         self.n = n
-        #self.capture = False
         self.captureList = list()
+        self.multi_capture_list = list()
 
         # Board kurulumu
         self.pieces = [None] * self.n
@@ -73,6 +76,11 @@ class Board():
                 if self[x][y] * color > 0:
                     newmoves = self.get_moves_for_square((x, y))
                     moves.update(newmoves)
+        
+        if len(self.multi_capture_list) > 0:
+            moves.clear()
+            moves = self.multi_capture_list.copy()
+            return moves
 
         if len(self.captureList) > 0:
             moves.clear()
@@ -172,6 +180,7 @@ class Board():
             else:
                 return 0        # Game still continues
 
+    
     def execute_move(self, action, color):
         """Perform the given move on the board; flips pieces as necessary.
         color gives the color pf the piece to play (1=white,-1=black)
@@ -215,6 +224,21 @@ class Board():
             self.pieces[piece_to_move[0]][piece_to_move[1]] = 0
             self.pieces[x][y] = color
 
+    def has_multi_capture_move(self, source_square):
+        # Önceden capture hamlesi yapan taşlar için çağrılıyor, 
+        # ilk hamlesinden sonra başka capture hareketi var mı diye kontrol ediliyor
+        # Squarede capture hamlesi varsa True, yoksa False dönecek
+        moves = self.get_moves_for_square(square=source_square)
+        if not moves:
+            return False
+        
+        for move in moves:
+            capture_flag = (move >> 8) & 1
+            if capture_flag:
+                return True
+        
+        return False
+    
     def _discover_move(self, origin, direction):
         """ Returns the endpoint for a legal move, starting at the given origin,
         moving by the given increment."""
@@ -240,11 +264,17 @@ class Board():
                 return
 
             if self.pieces[x1][y1] == 0:
-                self.capture = True
-                self.captureList.append(
-                    int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2))
-                return int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2)
-
+                s = self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6)
+                self.pieces[x1][y1] = color
+                if self.has_multi_capture_move((x1, y1)):
+                    self.pieces[x1][y1] = 0
+                    self.multi_capture_list.append(int(self.get_bin(3, 2) + s, 2))
+                    return int(self.get_bin(3, 2) + s, 2)
+                else:
+                    self.pieces[x1][y1] = 0
+                    self.captureList.append(int(self.get_bin(1, 2) + s, 2))
+                    return int(self.get_bin(1, 2) + s, 2)
+ 
         return
 
     def get_bin(self, x, n):

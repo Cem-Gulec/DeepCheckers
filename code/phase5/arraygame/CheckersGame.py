@@ -31,18 +31,17 @@ class CheckersGame(Game):
 
     def getActionSize(self):
         # return number of actions
-        return 512 # 256 
+        return 1024 # 256 
 
     def getNextState(self, board, player, action):
         # if player takes action on board, return next (board,player)
         # action must be a valid move
-        if action == self.getActionSize():
-            return (board, -player)
         b = Board(self.n)
         b.pieces = np.copy(board)
         b.execute_move(action, player)
-        return (b.pieces, -player)
-
+        multi_capture = (action >> 9) & 1
+        return (b.pieces, player) if multi_capture else (b.pieces, -player)
+        
         # return a fixed size binary vector
     def getValidMoves(self, board, player):
         valids = [0]*self.getActionSize()
