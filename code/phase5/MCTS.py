@@ -1,6 +1,6 @@
 import logging
 import math
-
+import random
 import numpy as np
 
 EPS = 1e-8
@@ -25,6 +25,31 @@ class MCTS():
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
 
+        self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(2)]for j in range(8)]for k in range(8)]
+        self.hashValue = 0
+        self.hash_list = {}
+        self.start_node_hash = 0
+        self.counter = 0
+        self.depth = 1
+        self.zobrist_next_player = 1
+
+    def indexing(self, piece):
+        if (piece == -1):
+            return 0
+        if (piece == 1):
+            return 1
+        else:
+            return -1
+            
+    def computeHash(self, board):
+        h = 0
+        for i in range(8):
+            for j in range(8):
+                if board[i][j] != 0:
+                    piece = self.indexing(board[i][j])
+                    h ^= self.zobTable[i][j][piece]
+        return h
+    
     def getActionProb(self, canonicalBoard, temp=1):
         """
         This function performs numMCTSSims simulations of MCTS starting from
@@ -49,7 +74,10 @@ class MCTS():
 
         counts = [x ** (1. / temp) for x in counts]
         counts_sum = float(sum(counts))
+        if counts_sum == 0:
+            self.game.display(canonicalBoard)
         probs = [x / counts_sum for x in counts]
+        self.hash_list.clear()
         return probs
 
     def search(self, canonicalBoard):
@@ -72,14 +100,36 @@ class MCTS():
             v: the negative of the value of the current canonicalBoard
         """
 
+        #print("MCTS.search: ", self.depth, " size of map: ", len(self.Ps))
         s = self.game.stringRepresentation(canonicalBoard)
         #self.game.display(canonicalBoard)
 
-        if s not in self.Es:
+        zobrist_board_temp = self.game.getCanonicalForm(canonicalBoard, self.zobrist_next_player)
+        
+        if self.counter == 0:
+            self.start_node_hash = self.computeHash(zobrist_board_temp)
+
+        self.hashValue = self.computeHash(zobrist_board_temp)
+       
+        # Starting node dışındakilerin tekrarlı olmayacağını farz ettim
+        if s not in self.Es:            
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
+            self.counter += 1
+            
+        if self.hashValue in self.hash_list.keys() and \
+            self.depth != self.hash_list[self.hashValue]:
+            print("DEBUGIMSI")
+            return -float('inf')
+
         if self.Es[s] != 0:
             # terminal node
             return -self.Es[s]
+        
+        if self.hashValue != self.start_node_hash and \
+            self.hashValue not in self.hash_list:
+            self.hash_list[self.hashValue] = self.depth
+            #print(self.depth)
+            #self.game.display(zobrist_board_temp)
 
         if s not in self.Ps:
             # leaf node
@@ -120,20 +170,18 @@ class MCTS():
                     best_act = a
 
         a = best_act
-        try:
-            """ logging.info("Before get next state: ")
-            logging.info(np.array2string(canonicalBoard))
-            logging.info(str(a)) """
-            next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
-            """ logging.info("After get next state: ")
-            logging.info(np.array2string(next_s)) """
-        except: 
-            logging.info("Error has occured: ")
-            logging.info(np.array2string(canonicalBoard))
+
+        next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
 
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
+        self.zobrist_next_player = next_player
+
+        self.depth += 1
+
         v = self.search(next_s)
+
+        self.depth -= 1
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)
@@ -144,4 +192,5 @@ class MCTS():
             self.Nsa[(s, a)] = 1
 
         self.Ns[s] += 1
+        #print("END OF MCTS.search: ", self.depth, " size of map: ", len(self.Ps))
         return -v
