@@ -27,11 +27,7 @@ class MCTS():
 
         self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(2)]for j in range(8)]for k in range(8)]
         self.hashValue = 0
-        self.hash_list = {}
-        self.start_node_hash = 0
-        self.counter = 0
-        self.depth = 1
-        self.zobrist_next_player = 1
+        self.hash_list = []
 
     def indexing(self, piece):
         if (piece == -1):
@@ -61,6 +57,7 @@ class MCTS():
         """
         for i in range(self.args.numMCTSSims):
             self.search(canonicalBoard)
+            self.hash_list.clear()
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
@@ -77,7 +74,6 @@ class MCTS():
         if counts_sum == 0:
             self.game.display(canonicalBoard)
         probs = [x / counts_sum for x in counts]
-        self.hash_list.clear()
         return probs
 
     def search(self, canonicalBoard):
@@ -104,30 +100,21 @@ class MCTS():
         s = self.game.stringRepresentation(canonicalBoard)
         #self.game.display(canonicalBoard)
 
-        zobrist_board_temp = self.game.getCanonicalForm(canonicalBoard, self.zobrist_next_player)
-        
-        if self.counter == 0:
-            self.start_node_hash = self.computeHash(zobrist_board_temp)
-
-        self.hashValue = self.computeHash(zobrist_board_temp)
+        self.hashValue = self.computeHash(canonicalBoard)
        
         # Starting node dışındakilerin tekrarlı olmayacağını farz ettim
         if s not in self.Es:            
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
-            self.counter += 1
             
-        if self.hashValue in self.hash_list.keys() and \
-            self.depth != self.hash_list[self.hashValue]:
+        if self.hashValue in self.hash_list:
             print("DEBUGIMSI")
-            return -float('inf')
 
         if self.Es[s] != 0:
             # terminal node
             return -self.Es[s]
         
-        if self.hashValue != self.start_node_hash and \
-            self.hashValue not in self.hash_list:
-            self.hash_list[self.hashValue] = self.depth
+        if self.hashValue not in self.hash_list:
+            self.hash_list.append(self.hashValue)
             #print(self.depth)
             #self.game.display(zobrist_board_temp)
 
@@ -175,22 +162,22 @@ class MCTS():
 
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
-        self.zobrist_next_player = next_player
+        temp_hash_val = self.computeHash(next_s)
+        if temp_hash_val not in self.hash_list:
+            
+            v = self.search(next_s)
+            if v:
+                if (s, a) in self.Qsa:
+                    self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)
+                    self.Nsa[(s, a)] += 1
 
-        self.depth += 1
+                else:
+                    self.Qsa[(s, a)] = v
+                    self.Nsa[(s, a)] = 1
 
-        v = self.search(next_s)
-
-        self.depth -= 1
-
-        if (s, a) in self.Qsa:
-            self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)
-            self.Nsa[(s, a)] += 1
-
-        else:
-            self.Qsa[(s, a)] = v
-            self.Nsa[(s, a)] = 1
-
-        self.Ns[s] += 1
-        #print("END OF MCTS.search: ", self.depth, " size of map: ", len(self.Ps))
-        return -v
+                self.Ns[s] += 1
+                #print("END OF MCTS.search: ", self.depth, " size of map: ", len(self.Ps))
+                return -v
+            else:
+                # TODO Hocanın bahsettiği şekilde bir sonraki en uygun hamleyi seç
+                self.Ns[s] += 1

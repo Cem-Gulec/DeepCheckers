@@ -74,21 +74,6 @@ class Coach():
             sym = self.game.getSymmetries(canonicalBoard, pi)
             for b, p in sym:
                 trainExamples.append([b, self.curPlayer, p, None])
-            
-            """ if self.curPlayer == 1:
-                if 1 in board[1]:
-                    for i in range(len(pi)):
-                        if i >= 0 and i <= 7: 
-                            pi[i] = 1./8
-                            continue
-                        pi[i] = 0
-            else:
-                if -1 in board[6]:
-                    for i in range(len(pi)):
-                        if i >= 120 and i <= 127: 
-                            pi[i] = 1./8
-                            continue
-                        pi[i] = 0  """
 
 
             action = np.random.choice(len(pi), p=pi)

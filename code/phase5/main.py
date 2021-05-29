@@ -1,7 +1,5 @@
 import logging
 import coloredlogs
-import threading
-import sys
 from Coach import Coach
 from arraygame.CheckersGame import CheckersGame as Game
 from arraygame.Nnet_files.NNet import NNetWrapper as nn
@@ -52,8 +50,4 @@ def main():
 
 
 if __name__ == "__main__":
-    threading.stack_size(250000000)
-    sys.setrecursionlimit(100000)
-    thread = threading.Thread(target=main)
-    thread.start()
-    #main()
+    main()
