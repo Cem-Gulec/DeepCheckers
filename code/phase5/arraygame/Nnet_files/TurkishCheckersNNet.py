@@ -34,9 +34,9 @@ class TurkishCheckersNNet(nn.Module):
         self.conv14 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1, padding=1)
         self.conv15 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1, padding=1)
         self.conv16 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1, padding=1)
-        self.conv17 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1, padding=1)
+        self.conv17 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1)
         self.conv18 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1)
-        self.conv19 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1)
+        #self.conv19 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1)
 
 
 
@@ -58,7 +58,7 @@ class TurkishCheckersNNet(nn.Module):
         self.bn16 = nn.BatchNorm2d(args.num_channels)
         self.bn17 = nn.BatchNorm2d(args.num_channels)
         self.bn18 = nn.BatchNorm2d(args.num_channels)
-        self.bn19 = nn.BatchNorm2d(args.num_channels)
+        #self.bn19 = nn.BatchNorm2d(args.num_channels)
 
 
         self.fc1 = nn.Linear(args.num_channels*(self.board_x-4)*(self.board_y-4), 1024)
