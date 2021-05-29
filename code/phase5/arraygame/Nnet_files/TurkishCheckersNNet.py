@@ -77,19 +77,19 @@ class TurkishCheckersNNet(nn.Module):
         s = F.relu(self.bn1(self.conv1(s)))                          # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn2(self.conv2(s)))                          # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn3(self.conv3(s)))                          # batch_size x num_channels x (board_x-2) x (board_y-2)
-        s = F.relu(self.bn4(self.conv4(s)))
+        s = F.dropout(F.relu(self.bn4(self.conv4(s))), p=self.args.dropout, training=self.training)
         s = F.relu(self.bn5(self.conv5(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn6(self.conv6(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn7(self.conv7(s)))  # batch_size x num_channels x (board_x-2) x (board_y-2)
-        s = F.relu(self.bn8(self.conv8(s)))
+        s = F.dropout(F.relu(self.bn8(self.conv8(s))), p=self.args.dropout, training=self.training)
         s = F.relu(self.bn9(self.conv9(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn10(self.conv10(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn11(self.conv11(s)))  # batch_size x num_channels x (board_x-2) x (board_y-2)
-        s = F.relu(self.bn12(self.conv12(s)))
+        s = F.dropout(F.relu(self.bn12(self.conv12(s))), p=self.args.dropout, training=self.training)
         s = F.relu(self.bn13(self.conv13(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn14(self.conv14(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn15(self.conv15(s)))  # batch_size x num_channels x (board_x-2) x (board_y-2)
-        s = F.relu(self.bn16(self.conv16(s)))
+        s = F.dropout(F.relu(self.bn16(self.conv16(s))), p=self.args.dropout, training=self.training)
         s = F.relu(self.bn17(self.conv17(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn18(self.conv18(s)))  # batch_size x num_channels x (board_x-2) x (board_y-2)
         s = F.relu(self.bn19(self.conv19(s)))
