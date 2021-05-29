@@ -92,7 +92,7 @@ class TurkishCheckersNNet(nn.Module):
         s = F.dropout(F.relu(self.bn16(self.conv16(s))), p=self.args.dropout, training=self.training)
         s = F.relu(self.bn17(self.conv17(s)))  # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn18(self.conv18(s)))  # batch_size x num_channels x (board_x-2) x (board_y-2)
-        s = F.relu(self.bn19(self.conv19(s)))
+        #s = F.relu(self.bn19(self.conv19(s)))
         # batch_size x num_channels x (board_x-4) x (board_y-4)
         s = s.view(-1, self.args.num_channels*(self.board_x-4)*(self.board_y-4))
 
