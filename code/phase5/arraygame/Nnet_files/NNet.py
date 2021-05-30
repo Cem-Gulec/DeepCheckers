@@ -15,7 +15,7 @@ import torch.optim as optim
 from .TurkishCheckersNNet import TurkishCheckersNNet as onnet
 
 args = dotdict({
-    'lr': 0.001,
+    'lr': 1e-4,#0.001,1e-5
     'dropout': 0.4, #0.3 ve #0.5 de denenebilir
     'epochs': 15,
     'batch_size': 64,
