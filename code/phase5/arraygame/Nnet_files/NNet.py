@@ -37,7 +37,7 @@ class NNetWrapper(NeuralNet):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
-        optimizer = optim.Adam(self.nnet.parameters(),lr=1e-4, weight_decay=1e-5)
+        optimizer = optim.Adam(self.nnet.parameters(),lr=1e-4, weight_decay=5e-4)#weight_decay=1e-5,5e-5
 
         for epoch in range(args.epochs):
             print('EPOCH ::: ' + str(epoch + 1))
