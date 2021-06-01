@@ -5,7 +5,7 @@ import numpy as np
 
 EPS = 1e-8
 
-logging.basicConfig(filename='example.log', filemode='a',level=logging.DEBUG)
+log = logging.getLogger(__name__)
 
 
 class MCTS():
@@ -105,9 +105,6 @@ class MCTS():
         # Starting node dışındakilerin tekrarlı olmayacağını farz ettim
         if s not in self.Es:            
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
-            
-        if self.hashValue in self.hash_list:
-            print("DEBUGIMSI")
 
         if self.Es[s] != 0:
             # terminal node
@@ -122,6 +119,7 @@ class MCTS():
             # leaf node
             self.Ps[s], v = self.nnet.predict(canonicalBoard)
             valids = self.game.getValidMoves(canonicalBoard, 1)
+            non_zero = [i for i, e in enumerate(valids) if e != 0]
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
@@ -131,7 +129,7 @@ class MCTS():
 
                 # NB! All valid moves may be masked if either your NNet architecture is insufficient or you've get overfitting or something else.
                 # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.   
-                logging.error("All valid moves were masked, doing a workaround.")
+                log.error("All valid moves were masked, doing a workaround.")
                 self.Ps[s] = self.Ps[s] + valids
                 self.Ps[s] /= np.sum(self.Ps[s])
 
@@ -166,18 +164,42 @@ class MCTS():
         if temp_hash_val not in self.hash_list:
             
             v = self.search(next_s)
-            if v:
-                if (s, a) in self.Qsa:
-                    self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)
-                    self.Nsa[(s, a)] += 1
+            # Repetition olmadı
+            #if v:
+            if (s, a) in self.Qsa:
+                self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)
+                self.Nsa[(s, a)] += 1
 
-                else:
-                    self.Qsa[(s, a)] = v
-                    self.Nsa[(s, a)] = 1
-
-                self.Ns[s] += 1
-                #print("END OF MCTS.search: ", self.depth, " size of map: ", len(self.Ps))
-                return -v
             else:
-                # TODO Hocanın bahsettiği şekilde bir sonraki en uygun hamleyi seç
-                self.Ns[s] += 1
+                self.Qsa[(s, a)] = v
+                self.Nsa[(s, a)] = 1
+
+            self.Ns[s] += 1
+            #print("END OF MCTS.search: ", self.depth, " size of map: ", len(self.Ps))
+            return -v
+        else:
+            # TODO Hocanın bahsettiği şekilde bir sonraki en uygun hamleyi seç
+            # Burada bütün hamleler repetitive hamle olursa ne olacak? Olabilir, beraberlik dön
+            v = None
+            while v is None:
+                log.info('Repetition found with action : %s', str((a)))
+                non_zero = [i for i, e in enumerate(self.Vs[s]) if e != 0]
+                log.info("Numbers in valids are: {}".format(' '.join(map(str, non_zero))))
+                    
+                if a not in non_zero:
+                    self.game.display(canonicalBoard)
+                    log.error("Something terrible has happen")
+                    
+                self.Vs[s][a] = 0       # Valid move listesinden repetitive hamleyi kaldır
+                non_zero = [i for i, e in enumerate(self.Vs[s]) if e != 0]
+                log.info("New nums in valids are: {}".format(' '.join(map(str, non_zero))))
+                # Bütün hamleler masklandı oyun berabere
+                if len(non_zero) == 0:
+                    self.game.display(canonicalBoard) 
+                    log.error("No valids move remaining..")
+                    return next_player
+                    
+                v = self.search(canonicalBoard) # Yeni valids ve Qsa değerleriyle uygun hamleyi bul
+            
+            return -v
+            #self.Ns[s] += 1
