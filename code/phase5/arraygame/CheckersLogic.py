@@ -199,8 +199,6 @@ class Board():
                 return 0  # Game still continues
 
     def is_promotion_move(self, dest_square, source_square):
-        # TODO Şu anlık dama taşlarını kaldırdık deneme amaçlı, bunu zamanı gelince aç.
-        return False
         # Oynadığımız taş beyazsa ve promotion alanına girmişsek, true dönder        
         if (self[source_square[0]][source_square[1]] == self.WHITE_PIECE) and (dest_square[0] == 0):
             return True
