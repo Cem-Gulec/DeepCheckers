@@ -38,6 +38,12 @@ class CheckersGame(Game):
         # action must be a valid move
         b = Board(self.n)
         b.pieces = np.copy(board)
+
+        # Çok tekrara düştü ancak hamle kalmadı, oyuncunun taşları siliniyor
+        if action == -1:
+            b.pieces[b.pieces > 0] = 0
+            return (b.pieces, -player)
+
         b.execute_move(action, player)
         multi_capture = (action >> 9) & 1
         return (b.pieces, player) if multi_capture else (b.pieces, -player)
@@ -78,7 +84,7 @@ class CheckersGame(Game):
 
     def getSymmetries(self, board, pi):
         # mirror, rotational
-        return [(board, pi), (board[:, ::-1], pi[::-1])]
+        return [(board, pi)]
 
     def stringRepresentation(self, board):
         return board.tostring()

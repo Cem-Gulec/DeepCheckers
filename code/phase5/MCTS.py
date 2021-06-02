@@ -25,17 +25,24 @@ class MCTS():
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
 
-        self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(2)]for j in range(8)]for k in range(8)]
+        self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(4)]for j in range(8)]for k in range(8)]
         self.hashValue = 0
         self.hash_list = []
 
+    # Zobrsit table'da hangi piece kaçıncı indexte bilgisini bulmak için
     def indexing(self, piece):
-        if (piece == -1):
+        if (piece == -1):   # Siyah taşlar index0 de tutuluyor
             return 0
-        if (piece == 1):
+        if (piece == 1):    # Beyaz taşlar index1 de tutuluyor
             return 1
+        if (piece == -3):   # Siyah dama taşları index2 de tutuluyor
+            return 2
+        if (piece == 3):    # Beyaz dama taşları index3 de tutuluyor
+            return 3
         else:
-            return -1
+            log.error("While indexing somethings went terribly wrong.")
+            log.info("The piece is : %s", str(piece))
+            return -1       # Test amaçlı?
             
     def computeHash(self, board):
         h = 0

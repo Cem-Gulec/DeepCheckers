@@ -1,7 +1,8 @@
 import logging
 import os
 import sys
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt1
+import matplotlib.pyplot as plt2
 import numpy as np
 from collections import deque
 from pickle import Pickler, Unpickler
@@ -83,7 +84,7 @@ class Coach():
             r = self.game.getGameEnded(board, self.curPlayer)
 
             if r != 0:
-                self.game.display(board)
+                #self.game.display(board)
                 return [(x[0], x[2], r * ((-1) ** (x[1] != self.curPlayer))) for x in trainExamples]
 
     def learn(self):
@@ -94,6 +95,9 @@ class Coach():
         It then pits the new neural network against the old one and accepts it
         only if it wins >= updateThreshold fraction of games.
         """
+
+        pi_losses_list = []
+        v_losses_list = []
         
         for i in range(1, self.args.numIters + 1):
             # bookkeeping
@@ -131,6 +135,9 @@ class Coach():
             self.nnet.train(trainExamples)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
+            pi_losses_list.append(self.nnet.pi_losses_val)
+            v_losses_list.append(self.nnet.v_losses_val)
+
             log.info('PITTING AGAINST PREVIOUS VERSION')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                           lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
@@ -144,6 +151,29 @@ class Coach():
                 log.info('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
+        
+        pi_plot = [pi_losses_list]
+        v_plot  = [v_losses_list]
+
+        print(pi_plot)
+        print(v_plot)
+
+        for pi_ele in pi_plot:
+            plt1.plot(pi_ele)
+        
+        plt1.xlabel("Training iteration")
+        plt1.ylabel("Loss_pi")
+        plt1.savefig('pi_plot.png')
+        plt1.clf()
+
+        for v_ele in v_plot:
+            plt2.plot(v_ele)
+        
+        plt1.xlabel("Training iteration")
+        plt1.ylabel("Loss_v")
+        plt2.savefig('v_plot.png')
+        plt2.clf()
+
 
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'
