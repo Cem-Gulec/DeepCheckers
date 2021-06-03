@@ -48,16 +48,16 @@ class Board():
         #       2 . w . w . w . w
         #       1 w . w . w . w .
         #         a b c d e f g h
-        
+        self.pieces[7][0],self.pieces[6][1],self.pieces[1][4],self.pieces[1][2],self.pieces[3][6]  = 3, -1, -1, -1, -1
         # Siyah taşlar
-        self.pieces[0][1], self.pieces[0][3], self.pieces[0][5], self.pieces[0][7] = -1, -1, -1, -1
-        self.pieces[1][0], self.pieces[1][2], self.pieces[1][4], self.pieces[1][6] = -1, -1, -1, -1
-        self.pieces[2][1], self.pieces[2][3], self.pieces[2][5], self.pieces[2][7] = -1, -1, -1, -1
+        #self.pieces[0][1], self.pieces[0][3], self.pieces[0][5], self.pieces[0][7] = -1, -1, -1, -1
+        #self.pieces[1][0], self.pieces[1][2], self.pieces[1][4], self.pieces[1][6] = -1, -1, -1, -1
+        #self.pieces[2][1], self.pieces[2][3], self.pieces[2][5], self.pieces[2][7] = -1, -1, -1, -1
 
         # Beyaz taşlar
-        self.pieces[5][0], self.pieces[5][2], self.pieces[5][4], self.pieces[5][6] = 1, 1, 1, 1
-        self.pieces[6][1], self.pieces[6][3], self.pieces[6][5], self.pieces[6][7] = 1, 1, 1, 1
-        self.pieces[7][0], self.pieces[7][2], self.pieces[7][4], self.pieces[7][6] = 1, 1, 1, 1
+        #self.pieces[5][0], self.pieces[5][2], self.pieces[5][4], self.pieces[5][6] = 1, 1, 1, 1
+        #self.pieces[6][1], self.pieces[6][3], self.pieces[6][5], self.pieces[6][7] = 1, 1, 1, 1
+        #self.pieces[7][0], self.pieces[7][2], self.pieces[7][4], self.pieces[7][6] = 1, 1, 1, 1
 
     def __getitem__(self, index):
         return self.pieces[index]
@@ -180,23 +180,7 @@ class Board():
         if not self.has_a_valid_move(color):
             return -1
 
-        # İki oyuncununda kalan taşları var, oyun bitme koşulu araştırılmalı
-        # Beyaz renkler en üst row'a gelince oyunu kazanmalı
-        # Siyah renkler en alt row'a gelince oyunu kazanmalı
-        if color == self.WHITE_PIECE:
-            if color in self.pieces[0]:  # White wins
-                return 1
-            elif -color in self.pieces[7]:  # Black wins
-                return -1
-            else:
-                return 0  # Game still continues
-        else:  # color black
-            if color in self.pieces[7]:  # Black wins
-                return 1
-            elif -color in self.pieces[0]:  # White wins
-                return -1
-            else:
-                return 0  # Game still continues
+        return 0  # Game still continues
 
     def is_promotion_move(self, dest_square, source_square):
         # Oynadığımız taş beyazsa ve promotion alanına girmişsek, true dönder        
@@ -277,6 +261,29 @@ class Board():
                 return True
 
         return False
+       
+    def capture_piece(self, color, captured_color, source, captured_piece, dest, direction_way):
+        s = self.get_bin(direction_way, 2) + self.get_bin(dest[0] * 8 + dest[1], 6)
+        self.pieces[dest[0]][dest[1]] = color
+        self.pieces[source[0]][source[1]] = 0
+        self.pieces[captured_piece[0]][captured_piece[1]] = 0
+        if self.has_multi_capture_move(dest):
+            self.pieces[dest[0]][dest[1]] = 0
+            self.pieces[source[0]][source[1]] = color
+            self.pieces[captured_piece[0]][captured_piece[1]] = captured_color
+            
+            action = int(self.get_bin(3, 2) + s, 2)
+            if action not in self.multi_capture_list:
+                self.multi_capture_list.append(action)
+            return action
+        else:
+            self.pieces[dest[0]][dest[1]] = 0
+            self.pieces[source[0]][source[1]] = color
+            self.pieces[captured_piece[0]][captured_piece[1]] = captured_color
+            
+            self.captureList.append(int(self.get_bin(1, 2) + s, 2))
+            return int(self.get_bin(1, 2) + s, 2)
+
 
     def _discover_move(self, origin, direction):
         """ Returns the endpoint for a legal move, starting at the given origin,
@@ -304,24 +311,15 @@ class Board():
                 return
 
             if self.pieces[x1][y1] == 0:
-                s = self.get_bin(direction_way, 2) + self.get_bin(x1 * 8 + y1, 6)
-                self.pieces[x1][y1] = color
-                self.pieces[origin[0]][origin[1]] = 0
-                self.pieces[x][y] = 0
-                if self.has_multi_capture_move((x1, y1)):
-                    self.pieces[x1][y1] = 0
-                    self.pieces[origin[0]][origin[1]] = color
-                    self.pieces[x][y] = square
-                    action = int(self.get_bin(3, 2) + s, 2)
-                    if action not in self.multi_capture_list:
-                        self.multi_capture_list.append(action)
-                    return action
+                if abs(color) == 1:
+                    a = self.capture_piece(color, square, origin, (x,y), (x1, y1), direction_way)
                 else:
-                    self.pieces[x1][y1] = 0
-                    self.pieces[origin[0]][origin[1]] = color
-                    self.pieces[x][y] = square
-                    self.captureList.append(int(self.get_bin(1, 2) + s, 2))
-                    return int(self.get_bin(1, 2) + s, 2)
+                    while (0 <= x1 < self.n) and (0 <= y1 < self.n):
+                        if self.pieces[x1][y1] != 0:
+                            break
+                        a = self.capture_piece(color, square, origin, (x, y), (x1, y1), direction_way)
+                        x1, y1 = x1 + norm_direction[0], y1 + norm_direction[1]
+                return a
 
         return
 
