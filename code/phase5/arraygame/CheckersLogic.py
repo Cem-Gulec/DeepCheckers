@@ -48,16 +48,16 @@ class Board():
         #       2 . w . w . w . w
         #       1 w . w . w . w .
         #         a b c d e f g h
-        self.pieces[7][0],self.pieces[6][1],self.pieces[1][4],self.pieces[1][2],self.pieces[3][6]  = 3, -1, -1, -1, -1
+        
         # Siyah taşlar
-        #self.pieces[0][1], self.pieces[0][3], self.pieces[0][5], self.pieces[0][7] = -1, -1, -1, -1
-        #self.pieces[1][0], self.pieces[1][2], self.pieces[1][4], self.pieces[1][6] = -1, -1, -1, -1
-        #self.pieces[2][1], self.pieces[2][3], self.pieces[2][5], self.pieces[2][7] = -1, -1, -1, -1
+        self.pieces[0][1], self.pieces[0][3], self.pieces[0][5], self.pieces[0][7] = -1, -1, -1, -1
+        self.pieces[1][0], self.pieces[1][2], self.pieces[1][4], self.pieces[1][6] = -1, -1, -1, -1
+        self.pieces[2][1], self.pieces[2][3], self.pieces[2][5], self.pieces[2][7] = -1, -1, -1, -1
 
         # Beyaz taşlar
-        #self.pieces[5][0], self.pieces[5][2], self.pieces[5][4], self.pieces[5][6] = 1, 1, 1, 1
-        #self.pieces[6][1], self.pieces[6][3], self.pieces[6][5], self.pieces[6][7] = 1, 1, 1, 1
-        #self.pieces[7][0], self.pieces[7][2], self.pieces[7][4], self.pieces[7][6] = 1, 1, 1, 1
+        self.pieces[5][0], self.pieces[5][2], self.pieces[5][4], self.pieces[5][6] = 1, 1, 1, 1
+        self.pieces[6][1], self.pieces[6][3], self.pieces[6][5], self.pieces[6][7] = 1, 1, 1, 1
+        self.pieces[7][0], self.pieces[7][2], self.pieces[7][4], self.pieces[7][6] = 1, 1, 1, 1
 
     def __getitem__(self, index):
         return self.pieces[index]
