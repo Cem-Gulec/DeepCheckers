@@ -87,7 +87,7 @@ class CheckersGame(Game):
 
     def getSymmetries(self, board, pi):
         # mirror, rotational
-        return [(board, pi), (self.getCanonicalForm(board, -1), pi[::-1])]
+        return [(board, pi), (board[:, ::-1], pi[::-1])]
 
     def stringRepresentation(self, board):
         return board.tostring()
