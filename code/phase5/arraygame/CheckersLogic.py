@@ -30,6 +30,7 @@ class Board():
         self.n = n
         #self.capture = False
         self.captureList = list()
+        self.multi_capture_list = list()
 
         # Board kurulumu
         self.pieces = [None] * self.n
@@ -74,6 +75,11 @@ class Board():
                 if self[x][y] * color > 0:
                     newmoves = self.get_moves_for_square((x, y))
                     moves.update(newmoves)
+        
+        if len(self.multi_capture_list) > 0:
+            moves.clear()
+            moves.add(self.multi_capture_list[-1])
+            return moves
 
         if len(self.captureList) > 0:
             moves.clear()
@@ -105,7 +111,36 @@ class Board():
                     move = self._discover_move(square, direction)
                     if move:
                         moves.append(move)
-
+        # Beyaz Dama taşları
+        elif color == self.WHITE_KINGS:
+            # Bütün hamle yönlerine bak
+            for direction in self.__directions:
+                move = self._discover_move(square, direction)
+                # Aynı hamle yönünde available bütün hamleleri bul
+                new_dir = tuple(map(lambda x, y: x + y, direction, direction))
+                while (move):
+                    moves.append(move)
+                    # Multicapture hamle bulursan diğer hamlelere bakma
+                    if (move >> 9) & 1: return moves
+                    # Aynı yönde diğer squarelere hamle var mı kontrolü
+                    move = self._discover_move(square, new_dir)
+                    new_dir = tuple(
+                        map(lambda x, y: x + y, new_dir, direction))
+        # Siyah dama taşları
+        elif color == self.BLACK_KINGS:
+            # Bütün hamle yönlerine bak
+            for direction in self.__directions:
+                move = self._discover_move(square, direction)
+                # Aynı hamle yönünde available bütün hamleleri bul
+                target_sq = tuple(map(lambda x, y: x + y, square, direction))
+                while (move):
+                    moves.append(move)
+                    # Multicapture hamle bulursan diğer hamlelere bakma
+                    if (move >> 9) & 1: return moves
+                    # Aynı yönde diğer squarelere hamle var mı kontrolü
+                    move = self._discover_move(target_sq, direction)
+                    target_sq = tuple(
+                        map(lambda x, y: x + y, target_sq, direction))
         # Siyah taşlar
         else:
             for direction in self.__directions:
@@ -153,23 +188,20 @@ class Board():
         if not self.has_a_valid_move(color):
             return -1
         
-        # İki oyuncununda kalan taşları var, oyun bitme koşulu araştırılmalı
-        # Beyaz renkler en üst row'a gelince oyunu kazanmalı
-        # Siyah renkler en alt row'a gelince oyunu kazanmalı
-        if color == self.WHITE_PIECE:
-            if color in self.pieces[0]:     # White wins
-                return 1
-            elif -color in self.pieces[7]:  # Black wins
-                return -1
-            else:
-                return 0        # Game still continues
-        else:       # color black
-            if color in self.pieces[7]:     # Black wins
-                return 1
-            elif -color in self.pieces[0]:  # White wins
-                return -1
-            else:
-                return 0        # Game still continues
+        # Oyuncunun hala taşı var ve valid hamleside var
+        return 0    # Oyun devam ediyor.
+
+    # Yapılan hamlenin promotion hamlesi olup olmadığını kontrol et
+    def is_promotion_move(self, dest_square, source_square):
+         # Oynadığımız taş beyazsa ve promotion alanına girmişsek, true dönder        
+        if (self[source_square[0]][source_square[1]] == self.WHITE_PIECE) and (dest_square[0] == 0):
+            return True
+        # Oynadığımız taş siyahsa ve promotion alanına girmişsek, true dönder        
+        if (self[source_square[0]][source_square[1]] == self.BLACK_PIECE) and (dest_square[0] == 7):
+            return True
+        # Normal hamle, promotion yok
+        return False
+        
 
     def execute_move(self, action, color):
         """Perform the given move on the board; flips pieces as necessary.
@@ -180,17 +212,10 @@ class Board():
 
         # Add the piece to the empty square.
 
-        # action = 8 bit length information == [_ _] [_ _ _ _ _ _]
-        # ilk 2 bit direction bilgisini tutup bizlere move square'ine hangi yolu kullanarak geldiğimizi bildirecek
-        # son 6 bit move info kullanacak bize hangi square gitmemiz gerekiyor bilgisini verecek
-
+        # Square bilgisi
         move = action & 63
-        # direction = self.get_direction(action >> 6)
-        # 4 farklı direction olacak :
-        # 00 : Yukarı   == 0:[-1,0]
-        # 01 : Aşağı    == 1:[1,0]
-        # 10 : Sağa     == 2:[0,1]
-        # 11 : Sola     == 3:[0,-1]
+
+        # Source square ulaşmak için direction'un tersi yöne git
         direction_dict = {0: [-1, 0], 1: [1, 0], 2: [0, 1], 3: [0, -1]}
         direction = direction_dict[(action >> 6) & 3]
 
@@ -199,22 +224,68 @@ class Board():
 
         square = (int(move/self.n), move % self.n)
 
-        x, y = square[0], square[1]
-
         if capture:
-            captured_piece = [x-direction[0], y-direction[1]]
-            capturing_piece = [x-2*direction[0], y-2*direction[1]]
+            captured_piece = [x-y for x,y in zip(square, direction)]
+            # Burada captured piece'i bulana kadar geriye doğru gitmeli
+            while self[captured_piece[0]][captured_piece[1]] == 0:
+                captured_piece = [x-y for x,y in zip(captured_piece, direction)]
+                
+            capturing_piece = [x-y for x,y in zip(captured_piece, direction)]
+            # Burada da capture yapan taşı bulana kadar geriye gitmeli
+            while self[capturing_piece[0]][capturing_piece[1]] == 0:
+                capturing_piece = [x-y for x,y in zip(capturing_piece, direction)]
 
+            self.pieces[square[0]][square[1]] = color * 3 if self.is_promotion_move(
+                square, capturing_piece) else self.pieces[capturing_piece[0]][capturing_piece[1]]
             self.pieces[captured_piece[0]][captured_piece[1]] = 0
             self.pieces[capturing_piece[0]][capturing_piece[1]] = 0
-            self.pieces[x][y] = color
-            #self.capture = False
-            self.captureList.clear()
         else:
-            piece_to_move = [x-direction[0], y-direction[1]]
+            piece_to_move = [x-y for x,y in zip(square, direction)]
+            # Burada hangi dama taşını hareket ettiğini buluncaya kadar geriye gitmeli
+            while self[piece_to_move[0]][piece_to_move[1]] == 0:
+                piece_to_move = [x-y for x,y in zip(piece_to_move, direction)]
+            
+            self.pieces[square[0]][square[1]] = color * 3 if self.is_promotion_move(
+                square, piece_to_move) else self.pieces[piece_to_move[0]][piece_to_move[1]]
             self.pieces[piece_to_move[0]][piece_to_move[1]] = 0
-            self.pieces[x][y] = color
+    
+    def has_multi_capture_move(self, source_square):
+        # Önceden capture hamlesi yapan taşlar için çağrılıyor,
+        # ilk hamlesinden sonra başka capture hareketi var mı diye kontrol ediliyor
+        # Squarede capture hamlesi varsa True, yoksa False dönecek
+        moves = self.get_moves_for_square(square=source_square)
+        if not moves:
+            return False
 
+        for move in moves:
+            capture_flag = (move >> 8) & 1
+            if capture_flag:
+                return True
+
+        return False
+    
+    def capture_piece(self, color, captured_color, source, captured_piece, dest, direction_way):
+        s = self.get_bin(direction_way, 2) + self.get_bin(dest[0] * 8 + dest[1], 6)
+        self.pieces[dest[0]][dest[1]] = color
+        self.pieces[source[0]][source[1]] = 0
+        self.pieces[captured_piece[0]][captured_piece[1]] = 0
+        if self.has_multi_capture_move(dest):
+            self.pieces[dest[0]][dest[1]] = 0
+            self.pieces[source[0]][source[1]] = color
+            self.pieces[captured_piece[0]][captured_piece[1]] = captured_color
+            
+            action = int(self.get_bin(3, 2) + s, 2)
+            if action not in self.multi_capture_list:
+                self.multi_capture_list.append(action)
+            return action
+        else:
+            self.pieces[dest[0]][dest[1]] = 0
+            self.pieces[source[0]][source[1]] = color
+            self.pieces[captured_piece[0]][captured_piece[1]] = captured_color
+            
+            self.captureList.append(int(self.get_bin(1, 2) + s, 2))
+            return int(self.get_bin(1, 2) + s, 2)
+    
     def _discover_move(self, origin, direction):
         """ Returns the endpoint for a legal move, starting at the given origin,
         moving by the given increment."""
@@ -227,22 +298,33 @@ class Board():
         square = self.pieces[x][y]
 
         direction_dict = {0: (-1, 0), 1: (1, 0), 2: (0, 1), 3: (0, -1)}
+        norm_direction = tuple([int(num / abs(num)) if abs(num)>0 else 0 for num in direction])
         for key, ele in direction_dict.items():
-            if ele == direction:
+            if ele == norm_direction:
                 direction_way = key
-
+        
+        # Belirtilen yönde normal bir hareket var
         if square == 0:
             return int(self.get_bin(0, 2) + self.get_bin(direction_way, 2) + self.get_bin(x*8+y, 6), 2)
+        # Belirtilen yönde capture hareketi var
         elif color * square < 0:
-            x1, y1 = x+direction[0], y+direction[1]
+            # Destination square
+            x1, y1 = x + norm_direction[0], y + norm_direction[1]
 
             if not ((0 <= x1 < self.n) and (0 <= y1 < self.n)):
                 return
-
+            
+            # Eğer destination square boş ise
             if self.pieces[x1][y1] == 0:
-                self.capture = True
-                self.captureList.append(
-                    int(self.get_bin(1, 2) + self.get_bin(direction_way, 2) + self.get_bin(x1*8+y1, 6), 2))
+                if abs(color) == 1:
+                    a = self.capture_piece(color, square, origin, (x,y), (x1, y1), direction_way)
+                else:
+                    while (0 <= x1 < self.n) and (0 <= y1 < self.n):
+                        if self.pieces[x1][y1] != 0:
+                            break
+                        a = self.capture_piece(color, square, origin, (x, y), (x1, y1), direction_way)
+                        x1, y1 = x1 + norm_direction[0], y1 + norm_direction[1]
+                return a
 
         return
 

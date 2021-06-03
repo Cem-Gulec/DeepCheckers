@@ -29,6 +29,8 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
+        self.pi_losses_val = None
+        self.v_losses_val = None
 
         if args.cuda:
             self.nnet.cuda()
@@ -74,6 +76,9 @@ class NNetWrapper(NeuralNet):
                 optimizer.zero_grad()
                 total_loss.backward()
                 optimizer.step()
+
+            self.pi_losses_val = pi_losses.avg
+            self.v_losses_val = v_losses.avg
 
     def predict(self, board):
         """

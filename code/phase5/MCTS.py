@@ -25,17 +25,24 @@ class MCTS():
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
 
-        self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(2)]for j in range(8)]for k in range(8)]
+        self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(4)]for j in range(8)]for k in range(8)]
         self.hashValue = 0
         self.hash_list = []
 
+    # Zobrsit table'da hangi piece kaçıncı indexte bilgisini bulmak için
     def indexing(self, piece):
-        if (piece == -1):
+        if (piece == -1):   # Siyah taşlar index0 de tutuluyor
             return 0
-        if (piece == 1):
+        if (piece == 1):    # Beyaz taşlar index1 de tutuluyor
             return 1
+        if (piece == -3):   # Siyah dama taşları index2 de tutuluyor
+            return 2
+        if (piece == 3):    # Beyaz dama taşları index3 de tutuluyor
+            return 3
         else:
-            return -1
+            log.error("While indexing somethings went terribly wrong.")
+            log.info("The piece is : %s", str(piece))
+            return -1       # Test amaçlı?
             
     def computeHash(self, board):
         h = 0
@@ -50,7 +57,6 @@ class MCTS():
         """
         This function performs numMCTSSims simulations of MCTS starting from
         canonicalBoard.
-
         Returns:
             probs: a policy vector where the probability of the ith action is
                    proportional to Nsa[(s,a)]**(1./temp)
@@ -81,17 +87,14 @@ class MCTS():
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that
         has the maximum upper confidence bound as in the paper.
-
         Once a leaf node is found, the neural network is called to return an
         initial policy P and a value v for the state. This value is propagated
         up the search path. In case the leaf node is a terminal state, the
         outcome is propagated up the search path. The values of Ns, Nsa, Qsa are
         updated.
-
         NOTE: the return values are the negative of the value of the current
         state. This is done since v is in [-1,1] and if v is the value of a
         state for the current player, then its value is -v for the other player.
-
         Returns:
             v: the negative of the value of the current canonicalBoard
         """
@@ -182,9 +185,9 @@ class MCTS():
             # Burada bütün hamleler repetitive hamle olursa ne olacak? Olabilir, beraberlik dön
             v = None
             while v is None:
-                log.info('Repetition found with action : %s', str((a)))
+                #log.info('Repetition found with action : %s', str((a)))
                 non_zero = [i for i, e in enumerate(self.Vs[s]) if e != 0]
-                log.info("Numbers in valids are: {}".format(' '.join(map(str, non_zero))))
+                #log.info("Numbers in valids are: {}".format(' '.join(map(str, non_zero))))
                     
                 if a not in non_zero:
                     self.game.display(canonicalBoard)
@@ -192,7 +195,7 @@ class MCTS():
                     
                 self.Vs[s][a] = 0       # Valid move listesinden repetitive hamleyi kaldır
                 non_zero = [i for i, e in enumerate(self.Vs[s]) if e != 0]
-                log.info("New nums in valids are: {}".format(' '.join(map(str, non_zero))))
+                #log.info("New nums in valids are: {}".format(' '.join(map(str, non_zero))))
                 # Bütün hamleler masklandı oyun berabere
                 if len(non_zero) == 0:
                     self.game.display(canonicalBoard) 
@@ -202,4 +205,3 @@ class MCTS():
                 v = self.search(canonicalBoard) # Yeni valids ve Qsa değerleriyle uygun hamleyi bul
             
             return -v
-            #self.Ns[s] += 1

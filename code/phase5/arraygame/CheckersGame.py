@@ -31,27 +31,35 @@ class CheckersGame(Game):
 
     def getActionSize(self):
         # return number of actions
-        return 512 # 256 
+        # 10 bits total 
+        # First bit dictates there is a multi-capture move
+        # Second bit dictates there is a capture move
+        # Thirdth and foruth bit dictates the direction of the move
+        # Rest of the bits used to coordinates on the board
+        return 1024
 
     def getNextState(self, board, player, action):
         # if player takes action on board, return next (board,player)
         # action must be a valid move
-        if action == self.getActionSize():
-            return (board, -player)
         b = Board(self.n)
         b.pieces = np.copy(board)
+
+        # Çok tekrara düştü ancak hamle kalmadı, oyuncunun taşları siliniyor
+        if action == -1:
+            b.pieces[b.pieces > 0] = 0
+            return (b.pieces, -player)
+
         b.execute_move(action, player)
-        return (b.pieces, -player)
+        multi_capture_flag = (action >> 9) & 1
+        return (b.pieces, player) if multi_capture_flag else (b.pieces, -player)
 
         # return a fixed size binary vector
     def getValidMoves(self, board, player):
         valids = [0]*self.getActionSize()
         b = Board(self.n)
         b.pieces = np.copy(board)
+        
         legalMoves = b.get_legal_moves(player)
-        """ if len(legalMoves) == 0:
-            valids[-1] = 1
-            return np.array(valids) """
         for i in legalMoves:
             valids[i] = 1
         return np.array(valids)
