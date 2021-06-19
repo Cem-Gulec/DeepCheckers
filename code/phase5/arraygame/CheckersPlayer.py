@@ -74,11 +74,11 @@ class HumanCheckersPlayer():
                 square = int(binary_move[4:], 2)
                 source_sq = self.get_source_square(square, binary_move)
                 if capture:
-                    print("Possible capture(s): {}x{}:{}".format(source_sq, positions[square], i))
+                    print("Possible capture(s): {}x{}".format(source_sq, positions[square]))
                     s = str(source_sq) + 'x' + positions[square]
                     move_dict[s] = i
                 else:
-                    print("Possible move(s): {}-{}:{}".format(source_sq, positions[square], i))
+                    print("Possible move(s): {}-{}".format(source_sq, positions[square]))
                     s = str(source_sq) + '-' + positions[square]
                     move_dict[s] = i
         # örneğin 24 indexli a4 için 
