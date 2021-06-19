@@ -170,6 +170,24 @@ class Board():
                     return True
         
         return False
+    
+    def is_draw(self):
+        white_pieces_count = 0
+        black_pieces_count = 0
+
+        for i in range(self.n):
+            white = [x for x in self.pieces[i] if x>0]
+            if len(white) > 0:
+                white_pieces_count += len(white)
+            black = [x for x in self.pieces[i] if x<0]
+            if len(black):
+                black_pieces_count += len(black)
+        
+        if white_pieces_count == 1 and black_pieces_count == 1:
+            return True
+        
+        return False
+        
 
     def get_game_result(self, color):
         """ Burada color yendiyse 1, yenildiyse -1, berabere ise 0 döndürcek.
@@ -185,6 +203,9 @@ class Board():
         # Bizim oynatacak taşımız kalmadıysa oyunu rakip kazandı
         if not self.has_a_valid_move(color):
             return -1
+        
+        if self.is_draw():
+            return 1e-4
         
         # Oyuncunun hala taşı var ve valid hamleside var
         return 0    # Oyun devam ediyor.
