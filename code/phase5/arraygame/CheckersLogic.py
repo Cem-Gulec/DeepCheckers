@@ -1,3 +1,5 @@
+import logging
+log = logging.getLogger(__name__)
 
 # Sol taraf row, Sağ taraf column gösterecek şekilde tasarlandı
 
@@ -246,13 +248,25 @@ class Board():
         if capture:
             captured_piece = [x-y for x,y in zip(square, direction)]
             # Burada captured piece'i bulana kadar geriye doğru gitmeli
-            while self[captured_piece[0]][captured_piece[1]] == 0:
-                captured_piece = [x-y for x,y in zip(captured_piece, direction)]
+            try:
+                while self[captured_piece[0]][captured_piece[1]] == 0:
+                    captured_piece = [x-y for x,y in zip(captured_piece, direction)]
+            except IndexError:
+                log.info("Error occured while finding the captured piece")
+                log.info("Action is {}".format(action))
+                log.error(self.pieces)
+
                 
             capturing_piece = [x-y for x,y in zip(captured_piece, direction)]
             # Burada da capture yapan taşı bulana kadar geriye gitmeli
-            while self[capturing_piece[0]][capturing_piece[1]] == 0:
-                capturing_piece = [x-y for x,y in zip(capturing_piece, direction)]
+            try:
+                while self[capturing_piece[0]][capturing_piece[1]] == 0:
+                    capturing_piece = [x-y for x,y in zip(capturing_piece, direction)]
+            except IndexError:
+                log.info("Error occured while finding the capturing piece")
+                log.info("Action is {}".format(action))
+                log.error(self.pieces)
+                
 
             self.pieces[square[0]][square[1]] = color * 3 if self.is_promotion_move(
                 square, capturing_piece) else self.pieces[capturing_piece[0]][capturing_piece[1]]
@@ -261,9 +275,14 @@ class Board():
         else:
             piece_to_move = [x-y for x,y in zip(square, direction)]
             # Burada hangi dama taşını hareket ettiğini buluncaya kadar geriye gitmeli
-            while self[piece_to_move[0]][piece_to_move[1]] == 0:
-                piece_to_move = [x-y for x,y in zip(piece_to_move, direction)]
-            
+            try:
+                while self[piece_to_move[0]][piece_to_move[1]] == 0:
+                    piece_to_move = [x-y for x,y in zip(piece_to_move, direction)]
+            except IndexError:
+                log.info("Error occured while finding the captured piece")
+                log.info("Action is {}".format(action))
+                log.error(self.pieces)
+                
             self.pieces[square[0]][square[1]] = color * 3 if self.is_promotion_move(
                 square, piece_to_move) else self.pieces[piece_to_move[0]][piece_to_move[1]]
             self.pieces[piece_to_move[0]][piece_to_move[1]] = 0
