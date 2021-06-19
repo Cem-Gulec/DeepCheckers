@@ -87,7 +87,33 @@ class CheckersGame(Game):
 
     def getSymmetries(self, board, pi):
         # mirror, rotational
-        return [(board, pi), (board[:, ::-1], pi[::-1])]
+        new_pi = pi.copy()
+        
+        # Dikey simetriye uygun olarak, pi değerlerinin değişmesi gerekiyor
+        non_zero = [i for i, e in enumerate(new_pi) if e != 0]
+        for old_index in non_zero:
+            bin_old = format(old_index, 'b').zfill(10)
+            # İlk üç bitimiz yine aynı, multi_capture flag, capture_flag, direction[0]
+            bin_new = bin_old[:3]
+            # Sağ - sol hareketlerinde ise hareket yönüde değişmeli
+            if bin_old[2] == '1':
+                bin_new += '0' if bin_old[3] == '1' else '1'
+                bin_new += bin_old[4:7]
+                # Hareket yönüne ek olarak, square bilgiside değişmeli
+                bin_new_square = ''.join('1' if x=='0' else '0' for x in bin_old[7:])
+                bin_new += bin_new_square
+                new_index = int(bin_new, 2)
+                new_pi[old_index], new_pi[new_index] = new_pi[new_index], new_pi[old_index]
+            # Aşağı - yukarı hareketlerde yön değişmiyecek
+            else:
+                bin_new += bin_old[3:7]
+                # Sadece square bilgisi değişmeli
+                bin_new_square = ''.join('1' if x=='0' else '0' for x in bin_old[7:])
+                bin_new += bin_new_square
+                new_index = int(bin_new, 2)
+                new_pi[old_index], new_pi[new_index] = new_pi[new_index], new_pi[old_index]
+        
+        return [(board, pi), (np.flip(board, axis=1), new_pi)]
 
     def stringRepresentation(self, board):
         return board.tostring()
