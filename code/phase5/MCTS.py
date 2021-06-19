@@ -28,6 +28,8 @@ class MCTS():
         self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(4)]for j in range(8)]for k in range(8)]
         self.hashValue = 0
         self.hash_list = []
+        self.totalNodeCount = 0
+        self.repNodeCount = 0
 
     # Zobrsit table'da hangi piece kaçıncı indexte bilgisini bulmak için
     def indexing(self, piece):
@@ -140,6 +142,7 @@ class MCTS():
             self.Ns[s] = 0
             return -v
 
+        self.totalNodeCount += 1
         valids = self.Vs[s]
         cur_best = -float('inf')
         best_act = -1
@@ -185,6 +188,8 @@ class MCTS():
             # Burada bütün hamleler repetitive hamle olursa ne olacak? Olabilir, beraberlik dön
             v = None
             while v is None:
+                next_s_childs = [i for i, e in enumerate(self.game.getValidMoves(next_s, 1)) if e != 0]
+                self.repNodeCount += len(next_s_childs)
                 #log.info('Repetition found with action : %s', str((a)))
                 non_zero = [i for i, e in enumerate(self.Vs[s]) if e != 0]
                 #log.info("Numbers in valids are: {}".format(' '.join(map(str, non_zero))))

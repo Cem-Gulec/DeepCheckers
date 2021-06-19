@@ -104,6 +104,7 @@ class Coach():
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
                     self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
                     iterationTrainExamples += self.executeEpisode()
+                    log.info('MCTS total node count is {} and total repetition count is {}'.format(self.mcts.totalNodeCount, self.mcts.repNodeCount))
 
                 # save the iteration examples to the history 
                 self.trainExamplesHistory.append(iterationTrainExamples)
@@ -130,8 +131,8 @@ class Coach():
             self.nnet.train(trainExamples)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
-            pi_losses_list.append(self.nnet.pi_losses_val)
-            v_losses_list.append(self.nnet.v_losses_val)
+            #pi_losses_list.append(self.nnet.pi_losses_val)
+            #v_losses_list.append(self.nnet.v_losses_val)
 
             log.info('PITTING AGAINST PREVIOUS VERSION')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
@@ -147,27 +148,27 @@ class Coach():
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
         
-        pi_plot = [pi_losses_list]
-        v_plot  = [v_losses_list]
+        #pi_plot = [pi_losses_list]
+        #v_plot  = [v_losses_list]
 
-        print(pi_plot)
-        print(v_plot)
+        #print(pi_plot)
+        #print(v_plot)
 
-        for pi_ele in pi_plot:
-            plt1.plot(pi_ele)
+        #for pi_ele in pi_plot:
+        #    plt1.plot(pi_ele)
         
-        plt1.xlabel("Training iteration")
-        plt1.ylabel("Loss_pi")
-        plt1.savefig('pi_plot.png')
-        plt1.clf()
+        #plt1.xlabel("Training iteration")
+        #plt1.ylabel("Loss_pi")
+        #plt1.savefig('pi_plot.png')
+        #plt1.clf()
 
-        for v_ele in v_plot:
-            plt2.plot(v_ele)
+        #for v_ele in v_plot:
+        #    plt2.plot(v_ele)
         
-        plt1.xlabel("Training iteration")
-        plt1.ylabel("Loss_v")
-        plt2.savefig('v_plot.png')
-        plt2.clf()
+        #plt1.xlabel("Training iteration")
+        #plt1.ylabel("Loss_v")
+        #plt2.savefig('v_plot.png')
+        #plt2.clf()
 
 
     def getCheckpointFile(self, iteration):
