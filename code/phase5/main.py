@@ -2,7 +2,7 @@ import logging
 import coloredlogs
 from Coach import Coach
 from arraygame.CheckersGame import CheckersGame as Game
-from arraygame.Nnet_files.NNet import NNetWrapper as nn
+from arraygame.Nnet_files.NNetResNet import NNetWrapperResNet as nn
 from utils import *
 log = logging.getLogger(__name__)
 
