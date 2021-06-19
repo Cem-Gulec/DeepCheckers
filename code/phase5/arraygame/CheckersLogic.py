@@ -109,7 +109,7 @@ class Board():
             for direction in self.__directions:
                 if direction[0] != move_direction:   # Beyaz taşlar aşağı hareket olmamalı
                     move = self._discover_move(square, direction)
-                    if move:
+                    if move is not None:
                         moves.append(move)
         # Beyaz Dama taşları
         elif color == self.WHITE_KINGS:
@@ -118,7 +118,7 @@ class Board():
                 move = self._discover_move(square, direction)
                 # Aynı hamle yönünde available bütün hamleleri bul
                 new_dir = tuple(map(lambda x, y: x + y, direction, direction))
-                while (move):
+                while move is not None:
                     moves.append(move)
                     # Multicapture hamle bulursan diğer hamlelere bakma
                     if (move >> 9) & 1: return moves
@@ -133,7 +133,7 @@ class Board():
                 move = self._discover_move(square, direction)
                 # Aynı hamle yönünde available bütün hamleleri bul
                 target_sq = tuple(map(lambda x, y: x + y, square, direction))
-                while (move):
+                while move is not None:
                     moves.append(move)
                     # Multicapture hamle bulursan diğer hamlelere bakma
                     if (move >> 9) & 1: return moves
@@ -146,7 +146,7 @@ class Board():
             for direction in self.__directions:
                 if direction[0] != move_direction:  # Siyah taşlarda yukarı hareket olmamalı
                     move = self._discover_move(square, direction)
-                    if move:
+                    if move is not None:
                         moves.append(move)
 
         return moves
@@ -178,8 +178,6 @@ class Board():
         2 - player'ın yapacak hamlesi kalmaması """
         # Taşların sayısını kontrol etmek
         enemy = -color  # Rakip taşların rengi
-        enemyCount = 0  # Rakip taşların sayısı
-        myCount = 0     # Bizim taşların sayısı
         
         # Rakip taşı kalmadıysa oyunu biz kazandık
         if not self.has_piece_on_board(enemy):
