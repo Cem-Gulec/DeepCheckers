@@ -1,5 +1,7 @@
 import Arena
 from arraygame.CheckersGame import CheckersGame
+from MCTS import MCTS
+from arraygame.Nnet_files.NNetResNet import NNetWrapperResNet as NNet
 from arraygame.CheckersPlayer import *
 
 import numpy as np
@@ -11,7 +13,7 @@ any agent.
 """
 
 # mini_checkers = False  # Play in 6x6 instead of the normal 8x8.
-human_vs_random = True
+humanPlayer = True
 
 g = CheckersGame(8)
 
@@ -21,16 +23,13 @@ hp = HumanCheckersPlayer(g).play
 
 
 # nnet players
-""" n1 = NNet(g)
-if mini_othello:
-    n1.load_checkpoint('./temp/','checkpoint_2.pth.tar')
-else:
-    n1.load_checkpoint('./pretrained_models/othello/pytorch/','8x8_100checkpoints_best.pth.tar')
+n1 = NNet(g)
+n1.load_checkpoint('./temp/','best.pth.tar')
 args1 = dotdict({'numMCTSSims': 50, 'cpuct':1.0})
 mcts1 = MCTS(g, n1, args1)
-n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0)) """
+n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0))
 
-if human_vs_random:
+if humanPlayer:
     player2 = hp
 """ else:
     n2 = NNet(g)
@@ -41,6 +40,6 @@ if human_vs_random:
 
     player2 = n2p  # Player 2 is neural network if it's cpu vs cpu. """
 
-arena = Arena.Arena(rp, player2, g, display=CheckersGame.display)
+arena = Arena.Arena(n1p, player2, g, display=CheckersGame.display)
 
 print(arena.playGame(verbose=True))
