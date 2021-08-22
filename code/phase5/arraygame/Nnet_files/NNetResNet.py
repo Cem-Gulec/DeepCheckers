@@ -18,12 +18,12 @@ log = logging.getLogger(__name__)
 
 args = dotdict({
     'lr': 0.001,
-    'dropout': 0.3,
+    'dropout': 0.4,
     'epochs': 15,
-    'batch_size': 64,
+    'batch_size': 32,
     'cuda': True,
     'num_channels': 128,
-    'num_residual_layers': 20
+    'num_residual_layers': 40
 })
 
 

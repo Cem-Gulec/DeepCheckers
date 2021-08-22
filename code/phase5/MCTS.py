@@ -55,7 +55,7 @@ class MCTS():
                     h = np.bitwise_xor(h, (self.zobTable[i][j][piece]))
         return h
     
-    def getActionProb(self, canonicalBoard, temp=1):
+    def getActionProb(self, canonicalBoard, temp):
         """
         This function performs numMCTSSims simulations of MCTS starting from
         canonicalBoard.
