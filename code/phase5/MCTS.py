@@ -13,7 +13,7 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, game, nnet, args, ZobTableArg):
+    def __init__(self, game, nnet, args):
         self.game = game
         self.nnet = nnet
         self.args = args
@@ -25,7 +25,7 @@ class MCTS():
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
 
-        self.zobTable = np.copy(ZobTableArg)
+        self.zobTable = [[[random.randint(1,2**64 - 1) for i in range(4)]for j in range(8)]for k in range(8)]
         self.hashValue = 0
         self.hash_list = []
         self.totalNodeCount = 0
@@ -52,7 +52,7 @@ class MCTS():
             for j in range(8):
                 if board[i][j] != 0:
                     piece = self.indexing(board[i][j])
-                    h = np.bitwise_xor(h, (self.zobTable[i][j][piece]))
+                    h ^= self.zobTable[i][j][piece]
         return h
     
     def getActionProb(self, canonicalBoard, temp):

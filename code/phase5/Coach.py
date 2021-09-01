@@ -4,7 +4,6 @@ import sys
 from collections import deque
 from pickle import Pickler, Unpickler
 from random import shuffle
-import random
 
 import numpy as np
 from tqdm import tqdm
@@ -22,12 +21,11 @@ class Coach():
     """
 
     def __init__(self, game, nnet, args):
-        self.zobTable = [[[random.randint(1,2**32 - 1) for i in range(4)]for j in range(8)]for k in range(8)]
         self.game = game
         self.nnet = nnet
         self.pnet = self.nnet.__class__(self.game)  # the competitor network
         self.args = args
-        self.mcts = MCTS(self.game, self.nnet, self.args, self.zobTable)
+        self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []  # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False  # can be overriden in loadTrainExamples()
         
@@ -105,7 +103,7 @@ class Coach():
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
 
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
-                    self.mcts = MCTS(self.game, self.nnet, self.args, self.zobTable)  # reset search tree
+                    self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
                     iterationTrainExamples += self.executeEpisode()
                     log.info('MCTS total node count is {} and total repetition count is {}'.format(self.mcts.totalNodeCount, self.mcts.repNodeCount))
 
@@ -129,10 +127,10 @@ class Coach():
             # training new network, keeping a copy of the old one
             self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-            pmcts = MCTS(self.game, self.pnet, self.args, self.zobTable)
+            pmcts = MCTS(self.game, self.pnet, self.args)
 
             self.nnet.train(trainExamples)
-            nmcts = MCTS(self.game, self.nnet, self.args, self.zobTable)
+            nmcts = MCTS(self.game, self.nnet, self.args)
 
             #pi_losses_list.append(self.nnet.pi_losses_val)
             #v_losses_list.append(self.nnet.v_losses_val)
