@@ -148,28 +148,6 @@ class Coach():
                 log.info('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
-        
-        #pi_plot = [pi_losses_list]
-        #v_plot  = [v_losses_list]
-
-        #print(pi_plot)
-        #print(v_plot)
-
-        #for pi_ele in pi_plot:
-        #    plt1.plot(pi_ele)
-        
-        #plt1.xlabel("Training iteration")
-        #plt1.ylabel("Loss_pi")
-        #plt1.savefig('pi_plot.png')
-        #plt1.clf()
-
-        #for v_ele in v_plot:
-        #    plt2.plot(v_ele)
-        
-        #plt1.xlabel("Training iteration")
-        #plt1.ylabel("Loss_v")
-        #plt2.savefig('v_plot.png')
-        #plt2.clf()
 
 
     def getCheckpointFile(self, iteration):
